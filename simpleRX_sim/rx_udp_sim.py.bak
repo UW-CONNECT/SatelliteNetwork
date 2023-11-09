@@ -1,0 +1,42 @@
+'''
+rx_udp_sim.py :: Jackie Schellberg :: 10/17/2023 
+
+Code to decode packets as they are sent from GNURADIO via UDP SINK.
+ 
+'''
+import socket
+import matplotlib.pyplot as plt
+import struct
+import numpy as np
+
+# These values must match UDP SINK value 
+UDP_IP = "127.0.0.1"
+UDP_PORT = 20002
+
+sock = socket.socket(socket.AF_INET, 
+                    socket.SOCK_DGRAM)
+sock.bind((UDP_IP, UDP_PORT))
+
+# create a buffer to hold the amount of data needed for a preamble detection 
+
+while True:
+    # this waits until the receive buffer fills; does not depend on timing 
+    data, addr = sock.recvfrom(1024)
+    print("Received: %s" % data)
+    
+    # convert the data from binary to float 
+    num_floats = int(len(data) /4) 
+    format_str = '>' + 'f' * num_floats 
+    data = np.array(struct.unpack(format_str, data[:num_floats * 4]))
+    
+    # re and im parts are interleaved; convert to complex numbers 
+    print(data)
+    complex_data = data.astype(np.float32).view(np.complex64)
+    print(len(complex_data))
+    
+    plt.plot(abs(complex_data))
+    plt.show(block = False)
+    
+    break; 
+        
+plt.show()
