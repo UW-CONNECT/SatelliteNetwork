@@ -51,6 +51,7 @@ file.close()
 time.sleep(1)
 while(True):
     socket.send(bin_dat)
+    time.sleep(72960/200000)
 
 
 print(time.time() - t)

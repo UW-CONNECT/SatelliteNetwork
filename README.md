@@ -1,5 +1,5 @@
 # Python_Realtime_TxRx
-This is code for CSS-based modulation/demodulation using USRP B200. 
+This is code for CSS-based modulation/demodulation using USRP B200 and GNURADIO. 
 
 Realtime (~1s) Tx-Rx Mod/Demod Code with USRP + GNURADIO Python Implementation
 
@@ -7,6 +7,15 @@ Realtime (~1s) Tx-Rx Mod/Demod Code with USRP + GNURADIO Python Implementation
 * Add doppler correction code 
 * Check different packet length sizes w.r.t. RAW_FS value in rx_stream
 * Implement specific packet format including preamble, packet length, data, and end delimeter
+
+## NOTES 
+* Doppler correction can be done via GNURADIO using GPREDICT --> should we move this over? 
+* Synthetic data generated are in simpleTX_sim/test_data/, and are named accordingly , make sure to change parameters in rx_stream.py
+
+## Simple Test of Realtime Data Without USRPS (from synthetic data and GNURADIO channel model) 
+1. simpleTX_sim/genTxFile.py generates raw CSS data into binaryTXdata according to the 'symbols' variable. 
+2. Run simpleTX_fromUDP.grc 
+3. Run rx_stream.py :: Packets should begin to be decoded in the output cmd line, and this should produce symbols + 1 
 
 ## Tx/Rx with Two USRPs instructions 
 1. Connect each USRP to separate computers with GNURADIO and Python scripts. 

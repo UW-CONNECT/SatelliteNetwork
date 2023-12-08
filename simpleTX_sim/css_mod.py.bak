@@ -3,7 +3,7 @@ css_mod.py :: Jackie Schellberg :: November 1, 2023
 
 Code related to modulating CSS signals 
 
-Current implementation assumes that SF/sampling rate is agreed upon before hand.
+Current implementation assumes that SF/sampling rate is agreed upon before hand between Tx and Rx code.
 
 '''
 
@@ -15,37 +15,30 @@ from scipy import signal, fft
 
 import scipy.io
 class CssMod:
-    def __init__(self, N, UPSAMP):
+    def __init__(self, N, UPSAMP, preamble, end_delimeter):
         self.N = N 
         
         self.UPSAMP = UPSAMP 
         
-        self.PREAMBLE =  self.sym_to_data_ang([0,0,0,0,0,0,0,0])
+        self.PREAMBLE =  self.sym_to_data_ang(preamble)
         
-        self.END_DELIMETER =  self.sym_to_data_ang([0,0,0,0,0,0,0,0])
+        self.END_DELIMETER =  self.sym_to_data_ang(end_delimeter)
       
     def symbol2packet(self, symbols): 
         '''
         Converts symbols to binary and appends preamble, packet length, data, and ending delimeter. 
         '''
         output_packet_ang = [] 
-        #pkt_length = len(symbol) * self.N * self.UPSAMP
+        
         pkt_length = len(symbols)       
+        if pkt_length > self.N: 
+            print("Payload is too big, max size is: ", self.N)
+            return 
         
+        syms = np.concatenate((self.PREAMBLE , self.sym_to_data_ang([pkt_length]), \
+            self.sym_to_data_ang(symbols) , self.END_DELIMETER))
+        print(syms)
         
-        syms = self.sym_to_data_ang(symbols)
-        
-        '''
-        # need to check if packet length is within the modulation order, 
-        # or we will need multiple chirps to encode it 
-        if (pkt_length < self.N): 
-            pkt_size = self.sym_to_data_ang([pkt_length])
-            output_packet_ang = np.concatenate([self.PREAMBLE,self.PREAMBLE,pkt_size,syms,self.END_DELIMETER])
-        else: 
-            print("MO not supported. ")
-            output_packet_ang = np.concatenate([self.PREAMBLE,self.PREAMBLE,syms,self.END_DELIMETER])
-            #return 0 
-        '''    
         return syms   
         #return output_packet_ang
         
@@ -86,18 +79,15 @@ class CssMod:
                     data = data_upsamp
                      
                 out_data = np.append(out_data, data)
-            #out_data.flatten()
             return out_data
             
     def ang2bin(self, data):
         '''
         Convert complex data to binary for GNUradio 
         '''
-        #Rx_buff = np.zeros((2*len(data)),complex)
         Rx_buff = np.zeros((2*len(data)))
         Rx_buff[0::2] = np.real(data)
         Rx_buff[1::2] = np.imag(data)
-        #Rx_buff = np.append(Rx_buff, np.zeros((len(Rx_buff)),complex))
         Rx_buff = np.append(Rx_buff, np.zeros((len(Rx_buff))))
-        print(Rx_buff.shape)
+        
         return Rx_buff

@@ -19,17 +19,17 @@ socket.bind("tcp://127.0.0.1:4444")
 SF = 7 
 N = 2**SF
 UPSAMP = 10;
-symbols = np.ones(50)*2
+symbols = np.concatenate((np.ones(8), range(1,50)))
 
 css_modulator = CssMod(N, UPSAMP) 
 output = css_modulator.symbol2packet(symbols)
 print(len(output))
-bin_dat = np.float32(css_modulator.ang2bin(output))
+bin_dat = np.float32(np.append(css_modulator.ang2bin(output), np.zeros((200000))))
 bin_dat = bin_dat.tobytes()
 
 # For testing, continuously transmit these symbols 
 t = time.time()
-
+'''
 #socket.send(bin_dat)
 file = open('outdat_2', 'bw')
 
@@ -47,8 +47,11 @@ for i in range(0, num_pkts):
 print(len(bin_dat))
 
 file.close()
-
-socket.send(bin_dat)
+'''
+time.sleep(1)
+while(True):
+    socket.send(bin_dat)
+    time.sleep(72960/200000)
 
 
 print(time.time() - t)

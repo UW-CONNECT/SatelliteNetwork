@@ -23,7 +23,8 @@ from matplotlib import pyplot as plt
 LOGGER_LOC = 'DATA_LOG.txt'
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
-RAW_FS = 200000                 # the queue size is selected so that no more than 1 packet may reside within a queue item
+#RAW_FS = 200000                 # the queue size is selected so that no more than 1 packet may reside within a queue item
+RAW_FS = 200000 
 LORA_BW = 125e3        # LoRa bandwidth
 LORA_CHANNELS = [1]  # channels to process
 
@@ -61,6 +62,7 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
               '''  
             if (len(output) > 1):
                 print(output)
+                '''
                 plt.figure(1)
                 xpts = range(0,len(queue))
                 plt.plot(xpts, 10*np.log10(queue))
@@ -70,7 +72,7 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
                 plt.plot(xpts, output)
                 
                 plt.show()
-            
+                '''
     '''
     for i in range (0, max_queue_cnt):
         print("Displaying the queue items")

@@ -24,7 +24,7 @@ UPSAMP = 10;
 css_demodulator = CssDemod(N, UPSAMP);
 
 # induce a fake doppler shift 
-freq_shift = 10000
+freq_shift = 9000
 #freq_shift = 8000
 #freq_shift = 6000
 #freq_shift = 1000
@@ -39,7 +39,7 @@ queue = queue * np.exp(1j * 2 * math.pi * freq_shift * t)
 
 output = []
 css_demodulator.css_demod([], queue, output) 
-
+'''
 plt.figure(0)
 xpts = range(0,len(output))
 plt.plot(xpts, output)
@@ -48,3 +48,4 @@ plt.figure(1)
 xpts = range(0,len(queue))
 plt.plot(xpts, queue)
 plt.show()  
+'''

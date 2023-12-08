@@ -34,12 +34,13 @@ t = np.linspace(0, len(queue)/200000, len(queue))
 plt.figure(2)
 xpts = range(0,len(queue))
 plt.plot(xpts, queue)
+plt.show()
 
 queue = queue * np.exp(1j * 2 * math.pi * freq_shift * t)
 
 output = []
 css_demodulator.css_demod([], queue, output) 
-
+'''
 plt.figure(0)
 xpts = range(0,len(output))
 plt.plot(xpts, output)
@@ -48,3 +49,4 @@ plt.figure(1)
 xpts = range(0,len(queue))
 plt.plot(xpts, queue)
 plt.show()  
+'''
