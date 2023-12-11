@@ -89,5 +89,6 @@ class CssMod:
         Rx_buff[0::2] = np.real(data)
         Rx_buff[1::2] = np.imag(data)
         Rx_buff = np.append(Rx_buff, np.zeros((len(Rx_buff))))
+        #Rx_buff = np.append(np.zeros((len(Rx_buff))),Rx_buff)
         
         return Rx_buff

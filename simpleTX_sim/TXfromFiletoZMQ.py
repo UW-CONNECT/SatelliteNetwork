@@ -97,14 +97,14 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
 
         self.top_grid_layout.addWidget(self._qtgui_sink_x_0_win)
         self.channels_channel_model_0 = channels.channel_model(
-            noise_voltage=0.00,
+            noise_voltage=0.005,
             frequency_offset=0.0,
             epsilon=1.0,
             taps=[1.0 + 1.0j],
             noise_seed=0,
             block_tags=False)
         self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
-        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\binaryTXdata_2', True, 0, 0)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\5longpkts_2oneP_3333', True, 0, 0)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
 
 

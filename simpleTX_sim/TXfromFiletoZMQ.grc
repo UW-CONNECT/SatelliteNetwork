@@ -51,7 +51,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\binaryTXdata_2
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\5longpkts_2oneP_3333
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -96,7 +96,7 @@ blocks:
     freq_offset: '0.0'
     maxoutbuf: '0'
     minoutbuf: '0'
-    noise_voltage: '0.00'
+    noise_voltage: '0.005'
     seed: '0'
     taps: 1.0 + 1.0j
   states:

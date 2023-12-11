@@ -37,7 +37,7 @@ class CssMod:
         
         syms = np.concatenate((self.PREAMBLE , self.sym_to_data_ang([pkt_length]), \
             self.sym_to_data_ang(symbols) , self.END_DELIMETER))
-        print(syms)
+        
         
         return syms   
         #return output_packet_ang
@@ -88,6 +88,7 @@ class CssMod:
         Rx_buff = np.zeros((2*len(data)))
         Rx_buff[0::2] = np.real(data)
         Rx_buff[1::2] = np.imag(data)
-        Rx_buff = np.append(Rx_buff, np.zeros((len(Rx_buff))))
+        #Rx_buff = np.append(Rx_buff, np.zeros((len(Rx_buff))))
+        Rx_buff = np.append(np.zeros((len(Rx_buff))),Rx_buff)
         
         return Rx_buff
