@@ -22,12 +22,11 @@ import zmq
 from matplotlib import pyplot as plt
 
 ############################### Variables ###############################
-LOGGER_LOC = 'DATA_LOG.txt'
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
-#RAW_FS = 200000                 # the queue size is selected so that no more than 1 packet may reside within a queue item
-RAW_FS = 100000         # value should be kept <= expected length, so that we don't miss empty space
-LORA_BW = 125e3        # LoRa bandwidth
+#RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
+RAW_FS = 200000*12             # value should be kept <= expected length, so that we don't miss empty space
+
 LORA_CHANNELS = [1]  # channels to process
 
 UPSAMPLE_FACTOR = 4             		# factor to downsample to
@@ -38,7 +37,7 @@ OVERLAP = 0
 SF = 7 
 N = 2**SF
 UPSAMP = 10;
-PREAMBLE_SZ = N*UPSAMP
+PREAMBLE_SZ = N*UPSAMP*4
 END_DELIMITER = [3,3,3,3] 
 
 ##########################################################################
@@ -52,45 +51,13 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
     
     print("Started")
     max_queue_cnt = 10
-    #while (output_queue.qsize() < max_queue_cnt):
     while (True):
         if (input_queue.qsize() > 0): 
             queue = input_queue.get()[0]            
             output = []
-            css_demodulator.css_demod(my_channel, queue, output)         
-            #output_queue.put(output)
-            '''
-            plt.figure(1)
-            xpts = range(0,len(queue))
-            plt.plot(xpts, 20*np.log10(queue))
-            plt.show()
-              '''  
+            css_demodulator.css_demod(my_channel, queue, output)     
             if (len(output) > 1):
                 print(output)
-                '''
-                plt.figure(1)
-                xpts = range(0,len(queue))
-                plt.plot(xpts, 10*np.log10(queue))
-                
-                plt.figure(2)
-                xpts = range(0,len(output))
-                plt.plot(xpts, output)
-                
-                plt.show()
-                '''
-    '''
-    for i in range (0, max_queue_cnt):
-        print("Displaying the queue items")
-        output2 = output_queue.get()
-        print(len(output2))
-        plt.figure(1)
-        xpts = range(0,len(output2))
-        plt.plot(xpts, output2)
-        ax = plt.gca()
-        ax.set_ylim([0, 128])
-        plt.title("Demodulated symbols") 
-        plt.show()      
-    '''
     print("Done.")
         
 def IQ_SOURCE(chan, chan_num):

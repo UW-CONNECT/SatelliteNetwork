@@ -65,6 +65,28 @@ blocks:
     bus_structure: null
     coordinate: [14, 90]
     rotation: 0
+    state: disabled
+- name: blocks_file_source_1
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleRX_sim\rxDataTmp\rxAttenuator0dB_2onespreamb_t5
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [10, 199]
+    rotation: 0
     state: true
 - name: blocks_throttle_0
   id: blocks_throttle
@@ -103,9 +125,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [169, 250]
+    coordinate: [304, 254]
     rotation: 0
-    state: true
+    state: bypassed
 - name: qtgui_sink_x_0
   id: qtgui_sink_x
   parameters:
@@ -151,12 +173,13 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [576, 197]
+    coordinate: [577, 197]
     rotation: 0
     state: true
 
 connections:
 - [blocks_file_source_0, '0', channels_channel_model_0, '0']
+- [blocks_file_source_1, '0', channels_channel_model_0, '0']
 - [blocks_throttle_0, '0', qtgui_sink_x_0, '0']
 - [blocks_throttle_0, '0', zeromq_pub_sink_0, '0']
 - [channels_channel_model_0, '0', blocks_throttle_0, '0']

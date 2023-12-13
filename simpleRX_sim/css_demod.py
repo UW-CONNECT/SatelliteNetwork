@@ -33,10 +33,13 @@ class CssDemod:
         
         # Threshold envelope; at what power level do we expect to see a packet arrive? 
         # For low power scenario, this will have to be substituted 
-        self.DB_THRESH = -15 # simulation with .005 noise voltage
+        #self.DB_THRESH = -13 # simulation with .005 noise voltage
         #self.DB_THRESH = -25 # for simulation without any noise; should be perfect
         #self.DB_THRESH = -27
-        #self.DB_THRESH = -60
+        #self.DB_THRESH = -20
+        #self.DB_THRESH = -7
+        #self.DB_THRESH = -30
+        self.DB_THRESH = -33.4
         
         # Upsampling rate 
         self.UPSAMP = UPSAMP 
@@ -71,9 +74,13 @@ class CssDemod:
         
         self.END_COUNTER = 0
         
+        # just counting the number of packets decoded
+        self.TOTAL_PKT_CNT = 0
+        
     def checkXCORR(self, queue_list,possible_idx):
         #corr_offset = 50 # number of samples we want to precede the corrrelation, ensures we have a peak to detect in the presense of noise
-        corr_offset = 10
+        #corr_offset = self.PREAMBLE_SIZE
+        corr_offset = 500
         print("PREV QUEUE LEN",len(self.PREV_QUEUE))
         # packet may not be centered, so we need to search all possible start of packet 
         #possible_idx = np.squeeze(np.argwhere(10*np.log10(abs(queue_list)) > self.DB_THRESH))
@@ -94,10 +101,18 @@ class CssDemod:
             self.PREV_QUEUE = [] 
             return 1
         
+        print("First pos:", possible_idx[0])
         if (min(possible_idx) < corr_offset):
             possible_idx_diff = np.diff(possible_idx)  
             pdx_diff = np.atleast_1d(np.squeeze(np.argwhere(possible_idx_diff > self.PREAMBLE_SIZE)))
             #pdx_diff = np.argwhere(possible_idx_diff > self.PREAMBLE_SIZE)
+            
+            '''
+            plt.figure(1)
+            xpts =range(0, len(possible_idx_diff))
+            plt.plot(xpts, (possible_idx_diff))
+            plt.show()
+            '''
             
             if pdx_diff.size > 0: 
                 print("PDX PDX")
@@ -112,17 +127,28 @@ class CssDemod:
         if (len(queue_list) < self.PREAMBLE_SIZE*4): 
             return 1
         
+        #trans_upchirp = np.conjugate(self.UPCHIRP)
+        #trans_upchirp = np.conjugate(self.sym_to_data_ang( [1], self.N, self.UPSAMP))
+        #trans_upchirp = self.sym_to_data_ang( [1], self.N, self.UPSAMP)
+        #dechirped = sig_tmp * trans_upchirp
         
         xcorr_arr = [];
         #for i in range(1,self.WINDOW_SIZE*2) : 
         for i in range(1,self.PREAMBLE_SIZE*4) : 
+        #for i in range(1,self.PREAMBLE_SIZE*4) : 
+        #for i in range(1,len(queue_list) - 2*self.PREAMBLE_SIZE):
             # check the rest of the queue, append the remaining of the queue to the next one.                     
             window_1 = queue_list[ i : ( i + self.PREAMBLE_SIZE ) ]
             window_2 = queue_list[( i +self.PREAMBLE_SIZE) : ( i+2*self.PREAMBLE_SIZE)]
             
             fft_window1 = fft.fft(window_1)
             fft_window2 = fft.fft(window_2)
-                                
+            #fft_window1 = [self.symbol_demod(window_1)]
+            #fft_window2 = [self.symbol_demod(window_2)]
+            
+            #fft_window1 = window_1
+            #fft_window2 = window_2
+            # this scales the correlation between 0,1
             fft_window1 = (fft_window1 - np.mean(fft_window1)) / (np.std(fft_window1) * len(fft_window1))
             fft_window2 = (fft_window2 - np.mean(fft_window2)) / (np.std(fft_window2))
             
@@ -132,8 +158,16 @@ class CssDemod:
         #Na = 1 # for a moving average; minimize local peaks
         #xcorr_arr = np.squeeze(np.convolve(xcorr_arr, np.ones(Na)/Na, mode='valid'))
         xcorr_arr = np.array(xcorr_arr, dtype="object")
+        
+        # reject samples without any correlation 
+        if (max(xcorr_arr) < .5):
+            self.PREV_QUEUE = self.PREV_QUEUE[:possible_idx[-1]]
+            return
+        
+        
         peaks, _ = find_peaks(xcorr_arr,height=.1) 
-        imax_peak = peaks[np.argmax(xcorr_arr[peaks])]
+        #imax_peak = peaks[np.argmax(xcorr_arr[peaks])]
+        imax_peak = np.argmax(xcorr_arr)
         '''
         if len(peaks) < 1:
             print("NO peaks.")
@@ -142,7 +176,27 @@ class CssDemod:
         argm = np.argmax(xcorr_arr)
         max_xcorr = max(xcorr_arr)
                       
-        peakdx = int(possible_idx[imax_peak]) + 2
+        #peakdx = int(possible_idx[imax_peak]) + 2
+        #peakdx = int(possible_idx[imax_peak]) 
+        peakdx = int(possible_idx[0]+imax_peak ) - 7        # why the magic number 7?
+        #peakdx = int(possible_idx[imax_peak]) -7
+        #peakdx = int(possible_idx[imax_peak])
+        print("Second pos:", peakdx)
+        
+        '''
+        plt.figure(1)
+        xpts =range(0, len(xcorr_arr))
+        plt.plot(xpts, (xcorr_arr))
+        plt.axvline(x = imax_peak, color = 'b', label = 'axvline - full height')
+        
+        plt.figure(2)
+        xpts =range(0, len(self.PREV_QUEUE))
+        plt.plot(xpts, (self.PREV_QUEUE))
+        plt.axvline(x = possible_idx[0], color = 'r', label = 'axvline - full height')
+        plt.axvline(x = peakdx, color = 'b', label = 'axvline - full height')
+        plt.show()
+        '''
+        
         self.PREV_QUEUE = self.PREV_QUEUE[peakdx:]
        
         self.PACKET_DETECTED = True
@@ -150,6 +204,7 @@ class CssDemod:
         # get the length of the packet 
         self.PREV_QUEUE = self.PREV_QUEUE[2*self.PREAMBLE_SIZE:]
         self.PACKET_LEN = self.symbol_demod(self.PREV_QUEUE)
+        print("Packet length: ", self.PACKET_LEN)
         self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]
         self.PACKETS_DECODED = 0      
                 
@@ -158,14 +213,22 @@ class CssDemod:
     def css_demod(self, my_channel, queue, output):    
         print("Starting Demod")
         self.PREV_QUEUE = np.concatenate((self.LEFTOVER, list(queue)))
-        
+        '''
+        plt.figure(1)
+        xpts =range(0, len(self.PREV_QUEUE))
+        plt.plot(xpts, 10*np.log10(abs(self.PREV_QUEUE)))
+        plt.show()
+        '''
         
         while (len(self.PREV_QUEUE) > self.WINDOW_SIZE): 
             
             if (self.PACKET_DETECTED == False):
                 possible_idx = np.squeeze(np.argwhere(10*np.log10(abs(self.PREV_QUEUE)) > self.DB_THRESH))
-                if (len(possible_idx) < self.PREAMBLE_SIZE*8):
-                    print("Not enough indices.")
+                #possible_idx = np.array(range(20, len(self.PREV_QUEUE)))
+                if (possible_idx.size <= 1):
+                    print("Not enough indices: only ", possible_idx.size)
+                    print("Max Rx: ", max(10*np.log10(abs(self.PREV_QUEUE))))
+                    self.PREV_QUEUE=[]
                     break
                 
                 ret = self.checkXCORR(self.PREV_QUEUE,possible_idx) 
@@ -186,9 +249,13 @@ class CssDemod:
                         if (sym != curr_sym):
                                 #print(sym, curr_sym)
                                 print("Bad delimeter; sync might not be correct.")
+                                self.END_COUNTER = 0
+                                self.PACKET_DETECTED = False
                                 break
                         self.END_COUNTER = self.END_COUNTER + 1
                     else: 
+                        self.TOTAL_PKT_CNT = self.TOTAL_PKT_CNT + 1
+                        print("TOTAL PACKET COUNT: ", self.TOTAL_PKT_CNT)
                         self.END_COUNTER = 0
                         self.PACKET_DETECTED = False
                         self.PACKETS_DECODED = 0

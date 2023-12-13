@@ -24,8 +24,8 @@ from matplotlib import pyplot as plt
 ############################### Variables ###############################
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
-#RAW_FS = 200000                 # the queue size is selected so that no more than 1 packet may reside within a queue item
-RAW_FS = 100000         # value should be kept <= expected length, so that we don't miss empty space
+#RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
+RAW_FS = 200000           # value should be kept <= expected length, so that we don't miss empty space
 
 LORA_CHANNELS = [1]  # channels to process
 

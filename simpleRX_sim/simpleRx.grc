@@ -59,7 +59,25 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [731, 392]
+    coordinate: [722, 351]
+    rotation: 0
+    state: disabled
+- name: blocks_file_sink_1
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: ''
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleRX_sim\rxDataTmp\rxAttenuator0dB_8onespreamb_ALT_t1
+    type: complex
+    unbuffered: 'False'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [680, 333]
     rotation: 0
     state: disabled
 - name: blocks_udp_sink_0_0
@@ -80,7 +98,7 @@ blocks:
     bus_structure: null
     coordinate: [721, 261]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: qtgui_sink_x_0
   id: qtgui_sink_x
   parameters:
@@ -107,7 +125,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [721, 135]
+    coordinate: [684, 110]
     rotation: 0
     state: enabled
 - name: uhd_usrp_source_0
@@ -255,7 +273,7 @@ blocks:
     dc_offs_enb9: default
     dev_addr: '""'
     dev_args: ''
-    gain0: '0'
+    gain0: '.5'
     gain1: '0'
     gain10: '0'
     gain11: '0'
@@ -479,14 +497,35 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [362, 177]
+    coordinate: [260, 176]
     rotation: 0
     state: true
+- name: zeromq_pub_sink_0
+  id: zeromq_pub_sink
+  parameters:
+    address: tcp://127.0.0.1:55555
+    affinity: ''
+    alias: ''
+    comment: ''
+    hwm: '-1'
+    pass_tags: 'False'
+    timeout: '100'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [673, 239]
+    rotation: 0
+    state: enabled
 
 connections:
 - [uhd_usrp_source_0, '0', blocks_file_sink_0, '0']
+- [uhd_usrp_source_0, '0', blocks_file_sink_1, '0']
 - [uhd_usrp_source_0, '0', blocks_udp_sink_0_0, '0']
 - [uhd_usrp_source_0, '0', qtgui_sink_x_0, '0']
+- [uhd_usrp_source_0, '0', zeromq_pub_sink_0, '0']
 
 metadata:
   file_format: 1
