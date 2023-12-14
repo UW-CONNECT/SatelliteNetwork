@@ -20,9 +20,9 @@ class CssMod:
         
         self.UPSAMP = UPSAMP 
         
-        self.PREAMBLE =  self.sym_to_data_ang(preamble)
+        self.PREAMBLE =  preamble
         
-        self.END_DELIMETER =  self.sym_to_data_ang(end_delimeter)
+        self.END_DELIMETER =  end_delimeter
       
     def symbol2packet(self, symbols): 
         '''
@@ -30,17 +30,16 @@ class CssMod:
         '''
         output_packet_ang = [] 
         
-        pkt_length = len(symbols)       
-        if pkt_length > self.N: 
+        pkt_length_2 = len(symbols) % self.N 
+        pkt_length_1 = math.floor(len(symbols) / self.N)
+        
+        if pkt_length_2 > self.N: 
             print("Payload is too big, max size is: ", self.N)
-            return 
+            #return 
+       
+        pkt = self.sym_to_data_ang(np.concatenate((self.PREAMBLE , [pkt_length_2], [pkt_length_1], symbols , self.END_DELIMETER)))
         
-        syms = np.concatenate((self.PREAMBLE , self.sym_to_data_ang([pkt_length]), \
-            self.sym_to_data_ang(symbols) , self.END_DELIMETER))
-        
-        
-        return syms   
-        #return output_packet_ang
+        return pkt   
         
     def sym_to_data_ang(self, symbol):
             '''

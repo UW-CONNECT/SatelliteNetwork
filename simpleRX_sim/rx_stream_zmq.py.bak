@@ -25,7 +25,7 @@ from matplotlib import pyplot as plt
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
 #RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
-RAW_FS = 200000*12             # value should be kept <= expected length, so that we don't miss empty space
+RAW_FS = 200000           # value should be kept <= expected length, so that we don't miss empty space
 
 LORA_CHANNELS = [1]  # channels to process
 
@@ -37,7 +37,7 @@ OVERLAP = 0
 SF = 7 
 N = 2**SF
 UPSAMP = 10;
-PREAMBLE_SZ = N*UPSAMP*4
+PREAMBLE_SZ = N*UPSAMP
 END_DELIMITER = [3,3,3,3] 
 
 ##########################################################################
@@ -56,7 +56,7 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
             queue = input_queue.get()[0]            
             output = []
             css_demodulator.css_demod(my_channel, queue, output)     
-            if (len(output) > 1):
+            if (len(output) >= 1):
                 print(output)
     print("Done.")
         

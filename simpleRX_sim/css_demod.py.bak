@@ -39,8 +39,8 @@ class CssDemod:
         #self.DB_THRESH = -20
         #self.DB_THRESH = -7
         #self.DB_THRESH = -30
-        self.DB_THRESH = -33.4
-        
+        #self.DB_THRESH = -33.4
+        self.DB_THRESH = -8
         # Upsampling rate 
         self.UPSAMP = UPSAMP 
         
@@ -74,10 +74,15 @@ class CssDemod:
         
         self.END_COUNTER = 0
         
+        # just counting the number of packets decoded
+        self.TOTAL_PKT_CNT = 0
+        
+        self.OUTPUT_PKT = []
+        
     def checkXCORR(self, queue_list,possible_idx):
         #corr_offset = 50 # number of samples we want to precede the corrrelation, ensures we have a peak to detect in the presense of noise
         #corr_offset = self.PREAMBLE_SIZE
-        corr_offset = 500
+        corr_offset = 1000
         print("PREV QUEUE LEN",len(self.PREV_QUEUE))
         # packet may not be centered, so we need to search all possible start of packet 
         #possible_idx = np.squeeze(np.argwhere(10*np.log10(abs(queue_list)) > self.DB_THRESH))
@@ -175,7 +180,8 @@ class CssDemod:
                       
         #peakdx = int(possible_idx[imax_peak]) + 2
         #peakdx = int(possible_idx[imax_peak]) 
-        peakdx = int(possible_idx[0]+imax_peak ) - 7        # why the magic number 7?
+        #peakdx = int(possible_idx[0]+imax_peak ) - 7        # why the magic number 7?
+        peakdx = int(possible_idx[0]+imax_peak )  
         #peakdx = int(possible_idx[imax_peak]) -7
         #peakdx = int(possible_idx[imax_peak])
         print("Second pos:", peakdx)
@@ -197,11 +203,16 @@ class CssDemod:
         self.PREV_QUEUE = self.PREV_QUEUE[peakdx:]
        
         self.PACKET_DETECTED = True
-                
+        self.OUTPUT_PKT = []
         # get the length of the packet 
         self.PREV_QUEUE = self.PREV_QUEUE[2*self.PREAMBLE_SIZE:]
-        self.PACKET_LEN = self.symbol_demod(self.PREV_QUEUE)
-        print("Packet length: ", self.PACKET_LEN)
+        pkt_len_2 = self.symbol_demod(self.PREV_QUEUE)
+        self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]
+        pkt_len_1 = self.symbol_demod(self.PREV_QUEUE)
+        #self.PACKET_LEN = self.symbol_demod(self.PREV_QUEUE)
+        self.PACKET_LEN =  pkt_len_2 + self.N*pkt_len_1
+        #self.PACKET_LEN = 1001
+        print("Packet length: ", self.PACKET_LEN, pkt_len_2, pkt_len_1)
         self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]
         self.PACKETS_DECODED = 0      
                 
@@ -234,7 +245,8 @@ class CssDemod:
             elif (self.PACKET_DETECTED == True): 
                 if (self.PACKET_LEN > self.PACKETS_DECODED):
                     freq_bin = self.symbol_demod(self.PREV_QUEUE) 
-                    output.append(freq_bin)
+                    self.OUTPUT_PKT.append(freq_bin)
+                    
                     self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]
                     self.PACKETS_DECODED = self.PACKETS_DECODED + 1
                 else:
@@ -248,11 +260,16 @@ class CssDemod:
                                 print("Bad delimeter; sync might not be correct.")
                                 self.END_COUNTER = 0
                                 self.PACKET_DETECTED = False
+                                output.append(self.OUTPUT_PKT)
+                                output = self.OUTPUT_PKT
                                 break
                         self.END_COUNTER = self.END_COUNTER + 1
                     else: 
+                        self.TOTAL_PKT_CNT = self.TOTAL_PKT_CNT + 1
+                        print("TOTAL PACKET COUNT: ", self.TOTAL_PKT_CNT)
                         self.END_COUNTER = 0
                         self.PACKET_DETECTED = False
+                        output.append(self.OUTPUT_PKT)
                         self.PACKETS_DECODED = 0
         self.LEFTOVER = self.PREV_QUEUE
         

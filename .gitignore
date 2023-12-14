@@ -14,3 +14,7 @@ simpleRX_sim/rxDataTmp/rxAttenuator0dB_4onespreamb
 simpleRX_sim/rxDataTmp/rxAttenuator0dB_8onespreamb
 simpleRX_sim/rxDataTmp/rxAttenuator0dB_8onespreamb_ALT_t1
 simpleRX_sim/rxDataTmp/rxAttenuator0dB_8onespreamb_t1
+simpleTX_sim/randint1000
+simpleTX_sim/randint1000_ref
+simpleTX_sim/5longpkts_8oneP_3333
+simpleTX_sim/5longpkts_8oneALTP_3333

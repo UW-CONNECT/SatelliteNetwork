@@ -56,7 +56,7 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
             queue = input_queue.get()[0]            
             output = []
             css_demodulator.css_demod(my_channel, queue, output)     
-            if (len(output) > 1):
+            if (len(output) >= 1):
                 print(output)
     print("Done.")
         

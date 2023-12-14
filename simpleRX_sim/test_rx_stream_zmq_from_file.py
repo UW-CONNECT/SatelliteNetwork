@@ -18,8 +18,9 @@ PREAMBLE_SZ = N*UPSAMP
 
 END_DELIMITER = [3,3,3,3] 
 
-filename =r'C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleRX_sim\rxAttenuator0dB'
-filename =r'C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleRX_sim\rxDataTmp\rxAttenuator0dB_2onespreamb_t5'
+''' Old data using single packet size section ''' 
+#filename =r'C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleRX_sim\rxAttenuator0dB'
+#filename =r'C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleRX_sim\rxDataTmp\rxAttenuator0dB_2onespreamb_t5'
 #filename =r'C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleRX_sim\rxDataTmp\rxAttenuator0dB_8onespreamb_t1'
 #filename =r'C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleRX_sim\rxDataTmp\rxAttenuator0dB_8onespreamb_ALT_t1'
 
@@ -36,7 +37,7 @@ queue = load_file(filename)
 
 #queue = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER);
 #queue = queue[11000:]
-queue = queue[1150000:]
+#queue = queue[1150000:]
 print("Started")
 max_queue_cnt = 10
 #while (True):

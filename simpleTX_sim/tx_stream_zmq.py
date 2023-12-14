@@ -21,7 +21,9 @@ N = 2**SF
 UPSAMP = 10;
 symbols = np.concatenate((np.ones(8), range(1,50)))
 
-css_modulator = CssMod(N, UPSAMP) 
+preamble = [1,1] 
+end_delimeter = [3,3,3,3]
+css_modulator = CssMod(N, UPSAMP,preamble, end_delimeter) 
 output = css_modulator.symbol2packet(symbols)
 print(len(output))
 bin_dat = np.float32(css_modulator.ang2bin(output))
@@ -49,9 +51,9 @@ print(len(bin_dat))
 file.close()
 '''
 time.sleep(1)
-while(True):
-    socket.send(bin_dat)
-    time.sleep(72960/200000)
+#while(True):
+socket.send(bin_dat)
+#    time.sleep(72960/200000)
 
 
 print(time.time() - t)

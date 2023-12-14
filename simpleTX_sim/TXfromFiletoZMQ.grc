@@ -73,7 +73,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleRX_sim\rxDataTmp\rxAttenuator0dB_2onespreamb_t5
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\randint1000
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -85,7 +85,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [10, 199]
+    coordinate: [58, 248]
     rotation: 0
     state: true
 - name: blocks_throttle_0
@@ -104,7 +104,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [359, 166]
+    coordinate: [500, 119]
     rotation: 0
     state: true
 - name: channels_channel_model_0
@@ -118,16 +118,16 @@ blocks:
     freq_offset: '0.0'
     maxoutbuf: '0'
     minoutbuf: '0'
-    noise_voltage: '0.005'
+    noise_voltage: '0.035'
     seed: '0'
     taps: 1.0 + 1.0j
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [304, 254]
+    coordinate: [311, 222]
     rotation: 0
-    state: bypassed
+    state: enabled
 - name: qtgui_sink_x_0
   id: qtgui_sink_x
   parameters:
@@ -154,7 +154,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [576, 43]
+    coordinate: [743, 21]
     rotation: 0
     state: true
 - name: zeromq_pub_sink_0
@@ -173,7 +173,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [577, 197]
+    coordinate: [743, 127]
     rotation: 0
     state: true
 
