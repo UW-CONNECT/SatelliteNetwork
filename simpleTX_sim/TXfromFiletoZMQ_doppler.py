@@ -33,10 +33,11 @@ import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
+from gnuradio import zeromq
 
 from gnuradio import qtgui
 
-class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
+class TXfromFiletoZMQ_doppler(gr.top_block, Qt.QWidget):
 
     def __init__(self):
         gr.top_block.__init__(self, "Not titled yet")
@@ -59,7 +60,7 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "TXfromFiletoZMQ")
+        self.settings = Qt.QSettings("GNU Radio", "TXfromFiletoZMQ_doppler")
 
         try:
             if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
@@ -77,6 +78,7 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
         ##################################################
         # Blocks
         ##################################################
+        self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_gr_complex, 1, 'tcp://127.0.0.1:55555', 100, False, -1)
         self.qtgui_sink_x_0 = qtgui.sink_c(
             1024, #fftsize
             firdes.WIN_BLACKMAN_hARRIS, #wintype
@@ -101,25 +103,28 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
             taps=[1.0 + 1.0j],
             noise_seed=0,
             block_tags=False)
-        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
-        self.blocks_file_source_1 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\doppler_tests\\SF9_1000s', False, 0, 0)
+        self.blocks_throttle_1 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
+        self.blocks_multiply_xx_0 = blocks.multiply_vcc(1)
+        self.blocks_file_source_1 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\thousand5_tests\\SF9', True, 0, 0)
         self.blocks_file_source_1.set_begin_tag(pmt.PMT_NIL)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\doppler_tests\\SF1000s_035chan', False)
-        self.blocks_file_sink_0.set_unbuffered(False)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\doppler_sim_scripts\\GNURADIO_DOP_REF', True, 0, 0)
+        self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
 
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_file_source_1, 0), (self.channels_channel_model_0, 0))
-        self.connect((self.blocks_throttle_0, 0), (self.blocks_file_sink_0, 0))
-        self.connect((self.blocks_throttle_0, 0), (self.qtgui_sink_x_0, 0))
-        self.connect((self.channels_channel_model_0, 0), (self.blocks_throttle_0, 0))
+        self.connect((self.blocks_file_source_0, 0), (self.blocks_multiply_xx_0, 1))
+        self.connect((self.blocks_file_source_1, 0), (self.blocks_throttle_1, 0))
+        self.connect((self.blocks_multiply_xx_0, 0), (self.channels_channel_model_0, 0))
+        self.connect((self.blocks_throttle_1, 0), (self.blocks_multiply_xx_0, 0))
+        self.connect((self.channels_channel_model_0, 0), (self.qtgui_sink_x_0, 0))
+        self.connect((self.channels_channel_model_0, 0), (self.zeromq_pub_sink_0, 0))
 
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "TXfromFiletoZMQ")
+        self.settings = Qt.QSettings("GNU Radio", "TXfromFiletoZMQ_doppler")
         self.settings.setValue("geometry", self.saveGeometry())
         event.accept()
 
@@ -129,13 +134,14 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.blocks_throttle_0.set_sample_rate(self.samp_rate)
+        self.blocks_throttle_1.set_sample_rate(self.samp_rate)
         self.qtgui_sink_x_0.set_frequency_range(0, self.samp_rate)
 
 
 
 
 
-def main(top_block_cls=TXfromFiletoZMQ, options=None):
+def main(top_block_cls=TXfromFiletoZMQ_doppler, options=None):
 
     if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
         style = gr.prefs().get_string('qtgui', 'style', 'raster')

@@ -10,7 +10,7 @@ options:
     gen_linking: dynamic
     generate_options: qt_gui
     hier_block_src_path: '.:'
-    id: TXfromFiletoZMQ
+    id: TXfromFiletoZMQ_doppler
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -41,7 +41,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 12]
+    coordinate: [244, 36]
     rotation: 0
     state: enabled
 - name: blocks_file_sink_0
@@ -51,7 +51,7 @@ blocks:
     alias: ''
     append: 'False'
     comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\doppler_tests\SF1000s_035chan
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\doppler_tests\SF100s_035chan
     type: complex
     unbuffered: 'False'
     vlen: '1'
@@ -59,9 +59,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [735, 212]
+    coordinate: [795, 247]
     rotation: 0
-    state: true
+    state: disabled
 - name: blocks_file_source_0
   id: blocks_file_source
   parameters:
@@ -69,7 +69,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\5longpkts_2oneP_3333
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\doppler_sim_scripts\GNURADIO_DOP_REF
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -81,9 +81,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [14, 90]
+    coordinate: [20, 250]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: blocks_file_source_1
   id: blocks_file_source
   parameters:
@@ -91,21 +91,39 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\doppler_tests\SF9_1000s
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\thousand5_tests\SF9
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
     offset: '0'
-    repeat: 'False'
+    repeat: 'True'
     type: complex
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [58, 248]
+    coordinate: [12, 108]
     rotation: 0
-    state: true
+    state: enabled
+- name: blocks_multiply_xx_0
+  id: blocks_multiply_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [361, 185]
+    rotation: 0
+    state: enabled
 - name: blocks_throttle_0
   id: blocks_throttle
   parameters:
@@ -122,7 +140,26 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [500, 119]
+    coordinate: [252, 300]
+    rotation: 0
+    state: bypassed
+- name: blocks_throttle_1
+  id: blocks_throttle
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [230, 101]
     rotation: 0
     state: true
 - name: channels_channel_model_0
@@ -143,7 +180,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [318, 240]
+    coordinate: [472, 35]
     rotation: 0
     state: enabled
 - name: qtgui_sink_x_0
@@ -172,7 +209,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [743, 21]
+    coordinate: [803, 45]
     rotation: 0
     state: true
 - name: zeromq_pub_sink_0
@@ -191,17 +228,19 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [743, 127]
+    coordinate: [803, 160]
     rotation: 0
-    state: disabled
+    state: enabled
 
 connections:
-- [blocks_file_source_0, '0', channels_channel_model_0, '0']
-- [blocks_file_source_1, '0', channels_channel_model_0, '0']
-- [blocks_throttle_0, '0', blocks_file_sink_0, '0']
-- [blocks_throttle_0, '0', qtgui_sink_x_0, '0']
-- [blocks_throttle_0, '0', zeromq_pub_sink_0, '0']
-- [channels_channel_model_0, '0', blocks_throttle_0, '0']
+- [blocks_file_source_0, '0', blocks_throttle_0, '0']
+- [blocks_file_source_1, '0', blocks_throttle_1, '0']
+- [blocks_multiply_xx_0, '0', channels_channel_model_0, '0']
+- [blocks_throttle_0, '0', blocks_multiply_xx_0, '1']
+- [blocks_throttle_1, '0', blocks_multiply_xx_0, '0']
+- [channels_channel_model_0, '0', blocks_file_sink_0, '0']
+- [channels_channel_model_0, '0', qtgui_sink_x_0, '0']
+- [channels_channel_model_0, '0', zeromq_pub_sink_0, '0']
 
 metadata:
   file_format: 1

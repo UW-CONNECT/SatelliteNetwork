@@ -40,8 +40,6 @@ class CssDemod:
         #self.PREAMBLE_SIZE = UPSAMP * N * 4
         self.PREAMBLE_SIZE = PREAMBLE_SIZE
         
-        self.REF_PREAMBLE = self.sym_to_data_ang( [1,1], self.N, self.UPSAMP)
-        
         # Window size, the size of each chirp 
         self.WINDOW_SIZE = UPSAMP * N
         
@@ -73,27 +71,31 @@ class CssDemod:
         
         self.OUTPUT_PKT = []
         
-        # maximum doppler frequency to consider
-        self.FD_MAX = int(9e3)
-        
-        #self.FD_FINE = 100
-        self.FD_FINE = 2
-        
-        # compute this based on parameters?
-        self.FS = 200000
-        
-        self.tr = np.linspace(0, self.WINDOW_SIZE/self.FS, self.WINDOW_SIZE)
-        
-        self.doppler_cum = 0
-        
     def checkXCORR(self, queue_list,possible_idx):
         #corr_offset = 50 # number of samples we want to precede the corrrelation, ensures we have a peak to detect in the presense of noise
-        corr_offset = self.PREAMBLE_SIZE*2
+        #corr_offset = self.PREAMBLE_SIZE
+        corr_offset = 1000
+        print("PREV QUEUE LEN",len(self.PREV_QUEUE))
+        # packet may not be centered, so we need to search all possible start of packet 
+        #possible_idx = np.squeeze(np.argwhere(10*np.log10(abs(queue_list)) > self.DB_THRESH))
+        
+        '''
+        plt.figure(1)
+        xpts =range(0, len(queue_list))
+        plt.plot(xpts, np.real(queue_list))
+        
+        #print(possible_idx)
+        
+        #print(possible_idx_diff)
+        possible_idx_dx = np.argwhere(possible_idx_diff > self.WINDOW_SIZE)
+        print(possible_idx_dx)
+        plt.show()
+        '''
         if (len(possible_idx) == 0) :
             self.PREV_QUEUE = [] 
             return 1
         
-        #print("First pos:", possible_idx[0])
+        print("First pos:", possible_idx[0])
         if (min(possible_idx) < corr_offset):
             possible_idx_diff = np.diff(possible_idx)  
             pdx_diff = np.atleast_1d(np.squeeze(np.argwhere(possible_idx_diff > self.PREAMBLE_SIZE)))
@@ -107,7 +109,7 @@ class CssDemod:
             '''
             
             if pdx_diff.size > 0: 
-                #print("PDX PDX")
+                print("PDX PDX")
                 possible_idx =  possible_idx[(pdx_diff[0]+1):] - corr_offset
             else:           
                 print("No received signal, or the signal spills over into the previous queue item")                
@@ -115,38 +117,69 @@ class CssDemod:
         else: 
             possible_idx = possible_idx - corr_offset
         queue_list = queue_list[np.squeeze(possible_idx[0]):]
+        
         if (len(queue_list) < self.PREAMBLE_SIZE*4): 
-            print("Not enough samples to find sync")
             return 1
         
+        #trans_upchirp = np.conjugate(self.UPCHIRP)
+        #trans_upchirp = np.conjugate(self.sym_to_data_ang( [1], self.N, self.UPSAMP))
+        #trans_upchirp = self.sym_to_data_ang( [1], self.N, self.UPSAMP)
+        #dechirped = sig_tmp * trans_upchirp
+        
         xcorr_arr = [];
-        for i in range(1,self.PREAMBLE_SIZE*4) :                     
+        #for i in range(1,self.WINDOW_SIZE*2) : 
+        #for i in range(1,self.PREAMBLE_SIZE*4) : 
+        for i in range(1,self.PREAMBLE_SIZE*2) : 
+        #for i in range(1,self.PREAMBLE_SIZE*4) : 
+        #for i in range(1,len(queue_list) - 2*self.PREAMBLE_SIZE):
+            # check the rest of the queue, append the remaining of the queue to the next one.                     
             window_1 = queue_list[ i : ( i + self.PREAMBLE_SIZE ) ]
             window_2 = queue_list[( i +self.PREAMBLE_SIZE) : ( i+2*self.PREAMBLE_SIZE)]
             
+            fft_window1 = fft.fft(window_1)
+            fft_window2 = fft.fft(window_2)
+            #fft_window1 = [self.symbol_demod(window_1)]
+            #fft_window2 = [self.symbol_demod(window_2)]
+            
+            #fft_window1 = window_1
+            #fft_window2 = window_2
             # this scales the correlation between 0,1
-            fft_window1 = (window_1 - np.mean(window_1)) / (np.std(window_1) * len(window_1))
-            fft_window2 = (window_2 - np.mean(window_2)) / (np.std(window_2))
+            fft_window1 = (fft_window1 - np.mean(fft_window1)) / (np.std(fft_window1) * len(fft_window1))
+            fft_window2 = (fft_window2 - np.mean(fft_window2)) / (np.std(fft_window2))
             
             xcorr_val = np.squeeze(abs(np.correlate(fft_window1, fft_window2)))
             xcorr_arr.append(xcorr_val) 
         
+        #Na = 1 # for a moving average; minimize local peaks
+        #xcorr_arr = np.squeeze(np.convolve(xcorr_arr, np.ones(Na)/Na, mode='valid'))
         xcorr_arr = np.array(xcorr_arr, dtype="object")
         
         # reject samples without any correlation 
         if (max(xcorr_arr) < .5):
             self.PREV_QUEUE = self.PREV_QUEUE[:possible_idx[-1]]
             return
-                
-        imax_peak = np.argmax(xcorr_arr)
         
+        
+        peaks, _ = find_peaks(xcorr_arr,height=.1) 
+        #imax_peak = peaks[np.argmax(xcorr_arr[peaks])]
+        imax_peak = np.argmax(xcorr_arr)
+        '''
+        if len(peaks) < 1:
+            print("NO peaks.")
+            return 
+        '''
         argm = np.argmax(xcorr_arr)
         max_xcorr = max(xcorr_arr)
                       
+        #peakdx = int(possible_idx[imax_peak]) + 2
+        #peakdx = int(possible_idx[imax_peak]) 
         #peakdx = int(possible_idx[0]+imax_peak ) - 7        # why the magic number 7?
         peakdx = int(possible_idx[0]+imax_peak )  
-       
-        '''
+        #peakdx = int(possible_idx[imax_peak]) -7
+        #peakdx = int(possible_idx[imax_peak])
+        print("Second pos:", peakdx)
+        
+        
         plt.figure(1)
         xpts =range(0, len(xcorr_arr))
         plt.plot(xpts, (xcorr_arr))
@@ -154,63 +187,32 @@ class CssDemod:
         
         plt.figure(2)
         xpts =range(0, len(self.PREV_QUEUE))
-        plt.plot(xpts, 10*np.log10(abs(self.PREV_QUEUE)))
+        plt.plot(xpts, (self.PREV_QUEUE))
         plt.axvline(x = possible_idx[0], color = 'r', label = 'axvline - full height')
         plt.axvline(x = peakdx, color = 'b', label = 'axvline - full height')
         plt.show()
-        '''  
+        
+        
         self.PREV_QUEUE = self.PREV_QUEUE[peakdx:]
        
-        # Doppler correction for the whole packet   
-        t = np.linspace(0, len(self.REF_PREAMBLE)/self.FS, len(self.REF_PREAMBLE))
-        freq_shift = self.get_doppler(self.REF_PREAMBLE, self.PREV_QUEUE[:self.PREAMBLE_SIZE*2],self.FD_MAX,2,t)
-        t = np.linspace(0, len(self.PREV_QUEUE)/self.FS, len(self.PREV_QUEUE))
-        self.PREV_QUEUE = self.PREV_QUEUE * np.exp(1j * 2 * math.pi * freq_shift * t)    
-        print(freq_shift)
-        
         self.PACKET_DETECTED = True
         self.OUTPUT_PKT = []
         # get the length of the packet 
         self.PREV_QUEUE = self.PREV_QUEUE[2*self.PREAMBLE_SIZE:]
         pkt_len_2 = self.symbol_demod(self.PREV_QUEUE)
-                       
         self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]
         pkt_len_1 = self.symbol_demod(self.PREV_QUEUE)
-                
         #self.PACKET_LEN = self.symbol_demod(self.PREV_QUEUE)
         self.PACKET_LEN =  pkt_len_2 + self.N*pkt_len_1
-        if (self.PACKET_LEN > 1000):
-            self.PACKET_LEN = 1000
-            print("Warning: pkt length too big. Sync is off")
-            return
-        
         #self.PACKET_LEN = 1001
         print("Packet length: ", self.PACKET_LEN, pkt_len_2, pkt_len_1)
         self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]
         self.PACKETS_DECODED = 0      
-        
+                
         return 0 
         
     def css_demod(self, my_channel, queue, output):    
         print("Starting Demod")
-        #print(len(queue))
-        
-        freq_shift = self.doppler_cum
-        #print(self.doppler_cum)
-        #print(freq_shift)
-        #print("Freq bin:", freq_bin, "Freq shift: ", freq_shift)
-        self.t= np.linspace(0, len(queue)/self.FS, len(queue))
-        queue = queue * np.exp(1j * 2 * math.pi * freq_shift * self.t) 
-       
-        '''
-        for dop in self.doppler_cum:
-            freq_shift = dop
-            #print(self.doppler_cum)
-            #print(freq_shift)
-            #print("Freq bin:", freq_bin, "Freq shift: ", freq_shift)
-            self.t= np.linspace(0, len(queue)/self.FS, len(queue))
-            queue = queue * np.exp(1j * 2 * math.pi * freq_shift * self.t)    
-        '''
         self.PREV_QUEUE = np.concatenate((self.LEFTOVER, list(queue)))
         '''
         plt.figure(1)
@@ -218,16 +220,14 @@ class CssDemod:
         plt.plot(xpts, 10*np.log10(abs(self.PREV_QUEUE)))
         plt.show()
         '''
-        print("Max Rx: ", max(10*np.log10(abs(self.PREV_QUEUE))))
-        print(self.PACKET_DETECTED)
-        #print(max(10*np.log10(abs(self.PREV_QUEUE))))
+        
         while (len(self.PREV_QUEUE) > self.WINDOW_SIZE): 
             
-            if (self.PACKET_DETECTED == False):            
+            if (self.PACKET_DETECTED == False):
                 possible_idx = np.squeeze(np.argwhere(10*np.log10(abs(self.PREV_QUEUE)) > self.DB_THRESH))
                 #possible_idx = np.array(range(20, len(self.PREV_QUEUE)))
                 if (possible_idx.size <= 1):
-                    #print("Not enough indices: only ", possible_idx.size)
+                    print("Not enough indices: only ", possible_idx.size)
                     print("Max Rx: ", max(10*np.log10(abs(self.PREV_QUEUE))))
                     self.PREV_QUEUE=[]
                     break
@@ -236,17 +236,12 @@ class CssDemod:
                 if (ret == 1): 
                     break
             elif (self.PACKET_DETECTED == True): 
-                #print("LEN,", len(self.t), len(self.PREV_QUEUE))
                 if (self.PACKET_LEN > self.PACKETS_DECODED):
                     freq_bin = self.symbol_demod(self.PREV_QUEUE) 
-                                
                     self.OUTPUT_PKT.append(freq_bin)
                     
                     self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]
-                    self.t = self.t[self.WINDOW_SIZE:]
                     self.PACKETS_DECODED = self.PACKETS_DECODED + 1
-                    
-                    #print("PQ: ", len(self.PREV_QUEUE))
                 else:
                     # check that our end delimeter is there 
                     if (self.END_COUNTER < len(self.END_DELIMETER)): 
@@ -256,14 +251,13 @@ class CssDemod:
                         if (sym != curr_sym):
                                 #print(sym, curr_sym)
                                 print("Bad delimeter; sync might not be correct.")
-                                self.END_COUNTER =  len(self.END_DELIMETER)
+                                self.END_COUNTER = 0
                                 self.PACKET_DETECTED = False
                                 output.append(self.OUTPUT_PKT)
                                 output = self.OUTPUT_PKT
                                 break
                         self.END_COUNTER = self.END_COUNTER + 1
                     else: 
-                        
                         self.TOTAL_PKT_CNT = self.TOTAL_PKT_CNT + 1
                         print("TOTAL PACKET COUNT: ", self.TOTAL_PKT_CNT)
                         self.END_COUNTER = 0
@@ -272,37 +266,20 @@ class CssDemod:
                         self.PACKETS_DECODED = 0
         self.LEFTOVER = self.PREV_QUEUE
         
-    def get_doppler(self, reference, rx_data, doppler_freq,step,t): 
+    def get_doppler(self, up_chirp, window1): 
         '''
         Corrects doppler shift based on the known preamble 
         '''       
-        #f_d = range(-doppler_freq, doppler_freq, step)
-        f_d = np.arange(-doppler_freq, doppler_freq, step)
-        xcorr_arr = []
+        dechirped_shift = window1 * np.conjugate(up_chirp) 
+        dechirped_fft =fft.fft(dechirped_shift) 
+        dechirped_fft_shift = np.argmax(abs(dechirped_fft))
         
-        #print(np.array(f_d))
-        for f in f_d: 
-            #t = np.linspace(0, len(reference)/self.FS, len(reference))
-            data_shifted = rx_data * np.exp(1j * 2 * math.pi * f * t)        
-               
-            xcorr_val = np.squeeze(abs(np.correlate(data_shifted, reference)))   
-            xcorr_arr.append(xcorr_val)
-                       
-        freq_bin_shift = f_d[np.argmax(xcorr_arr)]
+        freq_1_shift = self.sym_to_data_ang( [0], self.N, self.UPSAMP) * np.conjugate(up_chirp) 
+        freq_1_shift_fft = fft.fft(freq_1_shift)
+        freq_1_shift_fft_shift = np.argmax(freq_1_shift_fft)
         
-        '''
-        if (freq_bin_shift > 4):
-            plt.figure(1)
-            xpts =range(0, len(xcorr_arr))
-            plt.plot(f_d, (xcorr_arr))
-            plt.axvline(x = f_d[np.argmax(xcorr_arr)], color = 'b')
-            plt.title('Freq. correlation')
-            plt.show()
-        '''
-        # doppler needs to be updated at queue boundaries! 
-        #self.doppler_cum.append(freq_bin_shift)
-        self.doppler_cum = self.doppler_cum + freq_bin_shift
-        
+        freq_bin_shift = dechirped_fft_shift - (freq_1_shift_fft_shift +1)
+                
         return freq_bin_shift
         
     def symbol_demod(self, rx_sig):
@@ -321,13 +298,6 @@ class CssDemod:
                  
         freq_bin = np.argmax(dechirped)
         
-        #freq_shift = self.get_doppler(self.UPCHIRP, self.PREV_QUEUE[:self.WINDOW_SIZE],self.FD_FINE,1)
-        freq_shift = self.get_doppler(self.sym_to_data_ang([freq_bin],self.N, self.UPSAMP), self.PREV_QUEUE[:self.WINDOW_SIZE],20,2,self.tr)
-        #print(freq_shift)
-        #print("Freq bin:", freq_bin, "Freq shift: ", freq_shift)
-        self.t= np.linspace(0, len(self.PREV_QUEUE)/self.FS, len(self.PREV_QUEUE))
-        self.PREV_QUEUE = self.PREV_QUEUE * np.exp(1j * 2 * math.pi * freq_shift * self.t)    
-                
         return freq_bin 
         
     def create_upchirp(self):
