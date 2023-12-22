@@ -33,7 +33,6 @@ import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
-from gnuradio import zeromq
 
 from gnuradio import qtgui
 
@@ -78,7 +77,6 @@ class TXfromFiletoZMQ_doppler(gr.top_block, Qt.QWidget):
         ##################################################
         # Blocks
         ##################################################
-        self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_gr_complex, 1, 'tcp://127.0.0.1:55555', 100, False, -1)
         self.qtgui_sink_x_0 = qtgui.sink_c(
             1024, #fftsize
             firdes.WIN_BLACKMAN_hARRIS, #wintype
@@ -120,7 +118,6 @@ class TXfromFiletoZMQ_doppler(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_multiply_xx_0, 0), (self.channels_channel_model_0, 0))
         self.connect((self.blocks_throttle_1, 0), (self.blocks_multiply_xx_0, 0))
         self.connect((self.channels_channel_model_0, 0), (self.qtgui_sink_x_0, 0))
-        self.connect((self.channels_channel_model_0, 0), (self.zeromq_pub_sink_0, 0))
 
 
     def closeEvent(self, event):

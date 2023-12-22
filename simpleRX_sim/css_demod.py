@@ -218,8 +218,8 @@ class CssDemod:
         plt.plot(xpts, 10*np.log10(abs(self.PREV_QUEUE)))
         plt.show()
         '''
-        print("Max Rx: ", max(10*np.log10(abs(self.PREV_QUEUE))))
-        print(self.PACKET_DETECTED)
+        #print("Max Rx: ", max(10*np.log10(abs(self.PREV_QUEUE))))
+        #print(self.PACKET_DETECTED)
         #print(max(10*np.log10(abs(self.PREV_QUEUE))))
         while (len(self.PREV_QUEUE) > self.WINDOW_SIZE): 
             

@@ -59,9 +59,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [523, 397]
+    coordinate: [504, 365]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_file_sink_0
   id: blocks_file_sink
   parameters:
@@ -69,7 +69,7 @@ blocks:
     alias: ''
     append: 'False'
     comment: ''
-    file: ''
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleRX_sim\calibrateSNR_noiseData
     type: complex
     unbuffered: 'False'
     vlen: '1'
@@ -77,9 +77,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [665, 132]
+    coordinate: [651, 48]
     rotation: 0
-    state: true
+    state: enabled
 - name: blocks_file_source_0
   id: blocks_file_source
   parameters:
@@ -87,7 +87,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: ''
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleRX_sim\calibrateSNR_noiseData
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -99,9 +99,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [74, 391]
+    coordinate: [54, 314]
     rotation: 0
-    state: true
+    state: disabled
 - name: blocks_nlog10_ff_0
   id: blocks_nlog10_ff
   parameters:
@@ -117,9 +117,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [684, 368]
+    coordinate: [614, 313]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_rms_xx_0
   id: blocks_rms_xx
   parameters:
@@ -134,9 +134,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [260, 418]
+    coordinate: [309, 351]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_rms_xx_0_0
   id: blocks_rms_xx
   parameters:
@@ -151,9 +151,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [272, 276]
+    coordinate: [468, 230]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_sub_xx_0
   id: blocks_sub_xx
   parameters:
@@ -169,9 +169,101 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [402, 304]
+    coordinate: [317, 204]
     rotation: 0
-    state: true
+    state: disabled
+- name: qtgui_number_sink_0
+  id: qtgui_number_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    autoscale: 'True'
+    avg: '0'
+    color1: ("black", "black")
+    color10: ("black", "black")
+    color2: ("black", "black")
+    color3: ("black", "black")
+    color4: ("black", "black")
+    color5: ("black", "black")
+    color6: ("black", "black")
+    color7: ("black", "black")
+    color8: ("black", "black")
+    color9: ("black", "black")
+    comment: ''
+    factor1: '1'
+    factor10: '1'
+    factor2: '1'
+    factor3: '1'
+    factor4: '1'
+    factor5: '1'
+    factor6: '1'
+    factor7: '1'
+    factor8: '1'
+    factor9: '1'
+    graph_type: qtgui.NUM_GRAPH_HORIZ
+    gui_hint: ''
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    max: '1'
+    min: '-1'
+    name: '""'
+    nconnections: '1'
+    type: float
+    unit1: ''
+    unit10: ''
+    unit2: ''
+    unit3: ''
+    unit4: ''
+    unit5: ''
+    unit6: ''
+    unit7: ''
+    unit8: ''
+    unit9: ''
+    update_time: '0.10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [761, 195]
+    rotation: 0
+    state: disabled
+- name: qtgui_sink_x_0
+  id: qtgui_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    bw: samp_rate
+    comment: ''
+    fc: '0'
+    fftsize: '1024'
+    gui_hint: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    plotconst: 'True'
+    plotfreq: 'True'
+    plottime: 'True'
+    plotwaterfall: 'True'
+    rate: '10'
+    showports: 'False'
+    showrf: 'False'
+    type: complex
+    wintype: firdes.WIN_BLACKMAN_hARRIS
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [753, 339]
+    rotation: 0
+    state: disabled
 - name: uhd_usrp_source_0
   id: uhd_usrp_source
   parameters:
@@ -541,9 +633,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [57, 207]
+    coordinate: [46, 153]
     rotation: 0
-    state: true
+    state: disabled
 - name: uhd_usrp_source_0_0
   id: uhd_usrp_source
   parameters:
@@ -913,18 +1005,20 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [339, 75]
+    coordinate: [382, 12]
     rotation: 0
-    state: true
+    state: enabled
 
 connections:
 - [blocks_divide_xx_0, '0', blocks_nlog10_ff_0, '0']
 - [blocks_file_source_0, '0', blocks_rms_xx_0, '0']
+- [blocks_file_source_0, '0', blocks_sub_xx_0, '1']
+- [blocks_nlog10_ff_0, '0', qtgui_number_sink_0, '0']
 - [blocks_rms_xx_0, '0', blocks_divide_xx_0, '1']
-- [blocks_rms_xx_0, '0', blocks_sub_xx_0, '1']
-- [blocks_rms_xx_0_0, '0', blocks_sub_xx_0, '0']
-- [blocks_sub_xx_0, '0', blocks_divide_xx_0, '0']
-- [uhd_usrp_source_0, '0', blocks_rms_xx_0_0, '0']
+- [blocks_rms_xx_0_0, '0', blocks_divide_xx_0, '0']
+- [blocks_sub_xx_0, '0', blocks_rms_xx_0_0, '0']
+- [uhd_usrp_source_0, '0', blocks_sub_xx_0, '0']
+- [uhd_usrp_source_0, '0', qtgui_sink_x_0, '0']
 - [uhd_usrp_source_0_0, '0', blocks_file_sink_0, '0']
 
 metadata:

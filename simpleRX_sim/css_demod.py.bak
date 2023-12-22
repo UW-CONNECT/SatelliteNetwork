@@ -179,6 +179,11 @@ class CssDemod:
                 
         #self.PACKET_LEN = self.symbol_demod(self.PREV_QUEUE)
         self.PACKET_LEN =  pkt_len_2 + self.N*pkt_len_1
+        if (self.PACKET_LEN > 1000):
+            self.PACKET_LEN = 1000
+            print("Warning: pkt length too big. Sync is off")
+            return
+        
         #self.PACKET_LEN = 1001
         print("Packet length: ", self.PACKET_LEN, pkt_len_2, pkt_len_1)
         self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]

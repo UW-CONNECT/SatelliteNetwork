@@ -259,7 +259,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [312, 203]
+    coordinate: [318, 211]
     rotation: 0
     state: enabled
 - name: blocks_rms_xx_0_0
@@ -295,7 +295,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [401, 328]
+    coordinate: [395, 325]
     rotation: 0
     state: enabled
 - name: blocks_throttle_0_0
@@ -314,7 +314,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [259, 446]
+    coordinate: [290, 417]
     rotation: 0
     state: bypassed
 - name: imp0
@@ -564,7 +564,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [645, 255]
+    coordinate: [646, 254]
     rotation: 0
     state: enabled
 

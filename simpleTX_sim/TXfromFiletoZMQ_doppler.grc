@@ -81,7 +81,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [20, 250]
+    coordinate: [31, 242]
     rotation: 0
     state: enabled
 - name: blocks_file_source_1
@@ -230,7 +230,7 @@ blocks:
     bus_structure: null
     coordinate: [803, 160]
     rotation: 0
-    state: enabled
+    state: disabled
 
 connections:
 - [blocks_file_source_0, '0', blocks_throttle_0, '0']
