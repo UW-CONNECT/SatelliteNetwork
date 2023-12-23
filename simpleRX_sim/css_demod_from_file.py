@@ -9,7 +9,7 @@ import zmq
 from matplotlib import pyplot as plt
 
 # CSS Specifics to be known ahead of time
-SF = 7 
+SF = 9
 N = 2**SF
 UPSAMP = 10;
 PREAMBLE_SZ = N*UPSAMP
@@ -20,7 +20,7 @@ END_DELIMITER = [3,3,3,3]
 # For low power scenario, this will have to be substituted 
 DB_THRESH = -8   # sim at .035 noise
 
-filename =r'C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\thousand5_tests\SF9_035chan'
+filename =r'C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\test_files\SF9100s_035chan'
 
 def load_file(file_path):
     fi_1 = open(file_path,'rb')

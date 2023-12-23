@@ -25,12 +25,12 @@ UPSAMP = 10;
 #symbols =  range(1,50)
 #symbols = random.sample(range(1, N), 1000)
 
-fileout_name = "thousand5_tests/SF9_noOnes"
+fileout_name = "test_files/SF9_100_5s"
 
 symbols = []
 #for ss in range(0,1000):
 #    symbols.append(random.randint(1,N-1))
-symbols = np.ones(1000)*5
+symbols = np.ones(100)*5
 
 #preamble = [0,0,0,0,0,0,0,0]
 #end_delimeter = [0,0,0,0,0,0,0,0] 
@@ -53,7 +53,7 @@ bsl = len(bin_dat)
 #bin_dat = np.concatenate((np.zeros((bsl)), bin_dat))
 #print(bin_dat.shape)
 #print(len(bin_dat))
-#bin_dat = np.append(np.float32(np.zeros((bsl))),bin_dat)
+bin_dat = np.append(np.float32(np.zeros((bsl))),bin_dat)
 bin_dat = bin_dat.tobytes()
 
 #print(np.concatenate((preamble, [49],np.squeeze(symbols), end_delimeter)))

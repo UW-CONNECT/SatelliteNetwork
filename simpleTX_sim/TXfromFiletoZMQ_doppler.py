@@ -103,10 +103,12 @@ class TXfromFiletoZMQ_doppler(gr.top_block, Qt.QWidget):
             block_tags=False)
         self.blocks_throttle_1 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         self.blocks_multiply_xx_0 = blocks.multiply_vcc(1)
-        self.blocks_file_source_1 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\thousand5_tests\\SF9', True, 0, 0)
+        self.blocks_file_source_1 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\test_files\\SF9_100_5s', False, 0, 0)
         self.blocks_file_source_1.set_begin_tag(pmt.PMT_NIL)
         self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\doppler_sim_scripts\\GNURADIO_DOP_REF', True, 0, 0)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\test_files\\SF9100s_035chan', False)
+        self.blocks_file_sink_0.set_unbuffered(False)
 
 
 
@@ -117,6 +119,7 @@ class TXfromFiletoZMQ_doppler(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_file_source_1, 0), (self.blocks_throttle_1, 0))
         self.connect((self.blocks_multiply_xx_0, 0), (self.channels_channel_model_0, 0))
         self.connect((self.blocks_throttle_1, 0), (self.blocks_multiply_xx_0, 0))
+        self.connect((self.channels_channel_model_0, 0), (self.blocks_file_sink_0, 0))
         self.connect((self.channels_channel_model_0, 0), (self.qtgui_sink_x_0, 0))
 
 
