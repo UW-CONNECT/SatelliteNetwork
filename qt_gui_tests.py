@@ -94,7 +94,7 @@ class qt_gui_tests(gr.top_block, Qt.QWidget):
 
         self.top_grid_layout.addWidget(self._qtgui_sink_x_0_win)
         self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
-        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\test_bw_change_tmp', True, 0, 0)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\ber_desktop_testing\\10pkts_sf9_20kbw_payload100\\trial1', True, 0, 0)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
 
 

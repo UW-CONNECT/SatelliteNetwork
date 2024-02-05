@@ -14,6 +14,7 @@ import random
 #SF = 7 
 SF = 9
 N = 2**SF
+#UPSAMP = 10;
 UPSAMP = 10;
 #symbols = np.concatenate((np.ones(8), range(1,50)))
 #symbols =  range(1,50)

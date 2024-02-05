@@ -55,7 +55,6 @@ class CssMod:
                 #samps = self.N * self.UPSAMP 
                 
                 samps = self.N 
-                print(samps)
                 phase = -pi + (j-1)*(2*pi/samps)
                 temp = np.zeros((samps, 1), complex)
                 #for i in range(0, self.N):

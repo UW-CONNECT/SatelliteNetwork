@@ -49,3 +49,5 @@ simpleTX_sim/doppler_sim_scripts/GNURADIO_DOP_REF
 simpleRX_sim/calibrateSNR_noiseData
 simpleTX_sim/test_files/SF9_100_5s
 simpleTX_sim/test_files/SF9_100_5s_ref
+simpleTX_sim/ber_desktop_testing/10pkts_sf9_20kbw_payload100/trial1
+simpleRX_sim/__pycache__/css_demod.cpython-311.pyc

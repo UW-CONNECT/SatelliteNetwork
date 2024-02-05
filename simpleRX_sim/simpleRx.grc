@@ -497,7 +497,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [239, 164]
+    coordinate: [241, 195]
     rotation: 0
     state: true
 - name: zeromq_pub_sink_0

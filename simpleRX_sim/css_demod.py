@@ -21,7 +21,7 @@ from statistics import mean
 import scipy.io
 
 class CssDemod:
-    def __init__(self, N, UPSAMP,PREAMBLE_SIZE,END_DELIMETER, DB_THRESH): 
+    def __init__(self, N, UPSAMP,PREAMBLE_SIZE,END_DELIMETER, DB_THRESH, GND_TRUTH_PKT=[],EXP_PAY_LEN=0,EXP_PKTS=0): 
         '''
         Initialize our CSS demodulator, keeping track of the state. 
         '''
@@ -86,6 +86,11 @@ class CssDemod:
         
         self.doppler_cum = 0
         
+        # error measuremnts
+        self.GND_TRUTH_PKT=GND_TRUTH_PKT
+        self.EXP_PAY_LEN=EXP_PAY_LEN
+        self.EXP_PKTS=EXP_PKTS
+                
     def checkXCORR(self, queue_list,possible_idx):
         #corr_offset = 50 # number of samples we want to precede the corrrelation, ensures we have a peak to detect in the presense of noise
         corr_offset = self.PREAMBLE_SIZE*2
@@ -114,6 +119,7 @@ class CssDemod:
                 return 1    
         else: 
             possible_idx = possible_idx - corr_offset
+        print(np.squeeze(possible_idx[0]))
         queue_list = queue_list[np.squeeze(possible_idx[0]):]
         if (len(queue_list) < self.PREAMBLE_SIZE*4): 
             print("Not enough samples to find sync")
@@ -166,7 +172,7 @@ class CssDemod:
         freq_shift = self.get_doppler(self.REF_PREAMBLE, self.PREV_QUEUE[:self.PREAMBLE_SIZE*2],self.FD_MAX,2,t)
         t = np.linspace(0, len(self.PREV_QUEUE)/self.FS, len(self.PREV_QUEUE))
         self.PREV_QUEUE = self.PREV_QUEUE * np.exp(1j * 2 * math.pi * freq_shift * t)    
-        print(freq_shift)
+        #print(freq_shift)
         
         self.PACKET_DETECTED = True
         self.OUTPUT_PKT = []
@@ -266,12 +272,16 @@ class CssDemod:
                         
                         self.TOTAL_PKT_CNT = self.TOTAL_PKT_CNT + 1
                         print("TOTAL PACKET COUNT: ", self.TOTAL_PKT_CNT)
+                        self.error_measurement()
                         self.END_COUNTER = 0
                         self.PACKET_DETECTED = False
                         output.append(self.OUTPUT_PKT)
                         self.PACKETS_DECODED = 0
         self.LEFTOVER = self.PREV_QUEUE
-        
+    
+    def error_measurement(self):
+        print('NUM ERRORs:',sum(np.subtract(self.GND_TRUTH_PKT, self.OUTPUT_PKT)))
+        print(len(self.GND_TRUTH_PKT), len(self.OUTPUT_PKT))
     def get_doppler(self, reference, rx_data, doppler_freq,step,t): 
         '''
         Corrects doppler shift based on the known preamble 
@@ -282,7 +292,7 @@ class CssDemod:
         
         #print(np.array(f_d))
         for f in f_d: 
-            #t = np.linspace(0, len(reference)/self.FS, len(reference))
+            t = np.linspace(0, len(reference)/self.FS, len(reference))
             data_shifted = rx_data * np.exp(1j * 2 * math.pi * f * t)        
                
             xcorr_val = np.squeeze(abs(np.correlate(data_shifted, reference)))   

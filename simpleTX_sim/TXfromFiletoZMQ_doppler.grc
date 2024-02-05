@@ -108,12 +108,12 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\test_files\SF9_100_5s
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\ber_desktop_testing\10pkts_sf9_20kbw_payload100\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
     offset: '0'
-    repeat: 'True'
+    repeat: 'False'
     type: complex
     vlen: '1'
   states:
@@ -157,7 +157,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [252, 300]
+    coordinate: [329, 306]
     rotation: 0
     state: bypassed
 - name: blocks_throttle_1

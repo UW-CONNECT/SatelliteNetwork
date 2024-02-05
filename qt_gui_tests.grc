@@ -51,7 +51,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\test_bw_change_tmp
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\ber_desktop_testing\10pkts_sf9_20kbw_payload100\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -63,7 +63,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [482, 297]
+    coordinate: [354, 194]
     rotation: 0
     state: true
 - name: blocks_throttle_0
