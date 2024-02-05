@@ -3,8 +3,6 @@ tx_stream :: Jackie Schellberg :: Last updated Nov 1, 2023
 
 For streaming a single set of 'symbols' over UDP to GNUradio 
 '''
-
-import socket 
 from css_mod import CssMod
 from matplotlib import pyplot as plt
 import numpy as np
@@ -12,10 +10,6 @@ import time
 import math
 import zmq
 import random
-
-context = zmq.Context() 
-socket = context.socket(zmq.PUB) 
-socket.bind("tcp://127.0.0.1:4444")
 
 #SF = 7 
 SF = 9
@@ -25,12 +19,13 @@ UPSAMP = 10;
 #symbols =  range(1,50)
 #symbols = random.sample(range(1, N), 1000)
 
-fileout_name = "test_files/SF9_100_5s"
+fileout_name = "test_bw_change_tmp"
 
 symbols = []
 #for ss in range(0,1000):
 #    symbols.append(random.randint(1,N-1))
-symbols = np.ones(100)*5
+#symbols = np.ones(100)*5
+symbols = [1]
 
 #preamble = [0,0,0,0,0,0,0,0]
 #end_delimeter = [0,0,0,0,0,0,0,0] 
@@ -56,6 +51,7 @@ bsl = len(bin_dat)
 bin_dat = np.append(np.float32(np.zeros((bsl))),bin_dat)
 bin_dat = bin_dat.tobytes()
 
+print(len(bin_dat))
 #print(np.concatenate((preamble, [49],np.squeeze(symbols), end_delimeter)))
 
 file = open(fileout_name, 'bw')

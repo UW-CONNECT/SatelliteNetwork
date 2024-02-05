@@ -49,19 +49,26 @@ class CssMod:
             out_data = []
             #accumulator = 0
             pi = math.pi
-
+            
             for j in symbol:
                 accumulator = 0
-                phase = -pi + (j-1)*(2*pi/(self.N))
-                temp = np.zeros((self.N, 1), complex)
-                for i in range(0, self.N):
+                #samps = self.N * self.UPSAMP 
+                
+                samps = self.N 
+                print(samps)
+                phase = -pi + (j-1)*(2*pi/samps)
+                temp = np.zeros((samps, 1), complex)
+                #for i in range(0, self.N):
+                
+                for i in range(0, samps):
                     accumulator = accumulator + phase
                     polar_radius = 1
                     
                     x = polar_radius * math.cos(accumulator)
                     y = polar_radius * math.sin(accumulator)
                     temp[i] = complex(x, y)
-                    phase = phase + (2*pi/self.N)
+                    #phase = phase + (2*pi/self.N)
+                    phase = phase + (2*pi/samps)
                     
                 data = temp
                 
@@ -75,11 +82,11 @@ class CssMod:
                     nz_h_2 = data_fft[int(len(data_fft)/2):]
                     parts = np.concatenate((nz_h_1, zeroes_h , nz_h_2))
                     data_upsamp = fft.ifft(parts)           
-                    data = data_upsamp
-                     
+                    data = data_upsamp * self.UPSAMP
+                                
                 out_data = np.append(out_data, data)
             return out_data
-            
+           
     def ang2bin(self, data):
         '''
         Convert complex data to binary for GNUradio 
@@ -88,6 +95,18 @@ class CssMod:
         Rx_buff[0::2] = np.real(data)
         Rx_buff[1::2] = np.imag(data)
         Rx_buff = np.append(Rx_buff, np.zeros((len(Rx_buff))))
+        #Rx_buff = np.append(np.zeros((len(Rx_buff))),Rx_buff)
+        
+        return Rx_buff
+        
+    def ang2bin_nopad(self, data):
+        '''
+        Convert complex data to binary for GNUradio 
+        '''
+        Rx_buff = np.zeros((2*len(data)))
+        Rx_buff[0::2] = np.real(data)
+        Rx_buff[1::2] = np.imag(data)
+       
         #Rx_buff = np.append(np.zeros((len(Rx_buff))),Rx_buff)
         
         return Rx_buff

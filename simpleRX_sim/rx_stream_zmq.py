@@ -50,7 +50,8 @@ END_DELIMITER = [3,3,3,3]
 #self.DB_THRESH = -30
 #DB_THRESH = -33.4
 #DB_THRESH = -8   # sim at .035 noise
-DB_THRESH = -5.5
+#DB_THRESH = -5.5
+DB_THRESH = -9.5
 ##########################################################################
 
 def spawn_a_worker(my_channel, input_queue, output_queue):

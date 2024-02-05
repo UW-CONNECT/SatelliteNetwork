@@ -87,7 +87,7 @@ class simpleRx(gr.top_block, Qt.QWidget):
             ),
         )
         self.uhd_usrp_source_0.set_center_freq(906e6, 0)
-        self.uhd_usrp_source_0.set_normalized_gain(.5, 0)
+        self.uhd_usrp_source_0.set_normalized_gain(1, 0)
         self.uhd_usrp_source_0.set_antenna("TX/RX", 0)
         self.uhd_usrp_source_0.set_bandwidth(samp_rate, 0)
         self.uhd_usrp_source_0.set_samp_rate(samp_rate)

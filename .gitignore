@@ -47,3 +47,5 @@ simpleTX_sim/thousand5_tests/SF9_noOnes
 simpleTX_sim/thousand5_tests/SF9_noOnes_ref
 simpleTX_sim/doppler_sim_scripts/GNURADIO_DOP_REF
 simpleRX_sim/calibrateSNR_noiseData
+simpleTX_sim/test_files/SF9_100_5s
+simpleTX_sim/test_files/SF9_100_5s_ref

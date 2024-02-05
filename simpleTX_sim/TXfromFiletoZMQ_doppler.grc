@@ -44,6 +44,23 @@ blocks:
     coordinate: [244, 36]
     rotation: 0
     state: enabled
+- name: analog_const_source_x_0
+  id: analog_const_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [58, 198]
+    rotation: 0
+    state: disabled
 - name: blocks_file_sink_0
   id: blocks_file_sink
   parameters:
@@ -61,7 +78,7 @@ blocks:
     bus_structure: null
     coordinate: [795, 247]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_file_source_0
   id: blocks_file_source
   parameters:
@@ -81,7 +98,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [31, 242]
+    coordinate: [95, 303]
     rotation: 0
     state: enabled
 - name: blocks_file_source_1
@@ -96,14 +113,14 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     offset: '0'
-    repeat: 'False'
+    repeat: 'True'
     type: complex
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [12, 108]
+    coordinate: [80, 170]
     rotation: 0
     state: enabled
 - name: blocks_multiply_xx_0
@@ -180,7 +197,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [472, 35]
+    coordinate: [483, 38]
     rotation: 0
     state: enabled
 - name: qtgui_sink_x_0
@@ -230,9 +247,10 @@ blocks:
     bus_structure: null
     coordinate: [803, 160]
     rotation: 0
-    state: disabled
+    state: enabled
 
 connections:
+- [analog_const_source_x_0, '0', blocks_throttle_1, '0']
 - [blocks_file_source_0, '0', blocks_throttle_0, '0']
 - [blocks_file_source_1, '0', blocks_throttle_1, '0']
 - [blocks_multiply_xx_0, '0', channels_channel_model_0, '0']
