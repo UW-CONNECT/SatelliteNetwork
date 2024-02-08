@@ -26,13 +26,14 @@ from gnuradio.filter import firdes
 import sip
 from gnuradio import blocks
 import pmt
-from gnuradio import channels
 from gnuradio import gr
 import sys
 import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
+from gnuradio import uhd
+import time
 
 from gnuradio import qtgui
 
@@ -72,11 +73,27 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 200000
+        self.tx_freq = tx_freq = 906e6
+        self.samp_rate = samp_rate = 200e3
 
         ##################################################
         # Blocks
         ##################################################
+        self.uhd_usrp_sink_0 = uhd.usrp_sink(
+            ",".join(("", "")),
+            uhd.stream_args(
+                cpu_format="fc32",
+                args='',
+                channels=list(range(0,1)),
+            ),
+            '',
+        )
+        self.uhd_usrp_sink_0.set_center_freq(tx_freq, 0)
+        self.uhd_usrp_sink_0.set_gain(60, 0)
+        self.uhd_usrp_sink_0.set_antenna('TX/RX', 0)
+        self.uhd_usrp_sink_0.set_bandwidth(samp_rate, 0)
+        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_sink_0.set_time_unknown_pps(uhd.time_spec())
         self.qtgui_sink_x_0 = qtgui.sink_c(
             1024, #fftsize
             firdes.WIN_BLACKMAN_hARRIS, #wintype
@@ -94,28 +111,16 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
         self.qtgui_sink_x_0.enable_rf_freq(False)
 
         self.top_grid_layout.addWidget(self._qtgui_sink_x_0_win)
-        self.channels_channel_model_0 = channels.channel_model(
-            noise_voltage=0.035,
-            frequency_offset=0.0,
-            epsilon=1.0,
-            taps=[1.0 + 1.0j],
-            noise_seed=0,
-            block_tags=False)
-        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
-        self.blocks_file_source_1 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\doppler_tests\\SF9_1000s', False, 0, 0)
-        self.blocks_file_source_1.set_begin_tag(pmt.PMT_NIL)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\doppler_tests\\SF1000s_035chan', False)
-        self.blocks_file_sink_0.set_unbuffered(False)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\SatelliteNetwork\\simpleTX_sim\\ber_desktop_testing\\10pkts_sf9_20kbw_payload100\\trial1', True, 0, 0)
+        self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
 
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_file_source_1, 0), (self.channels_channel_model_0, 0))
-        self.connect((self.blocks_throttle_0, 0), (self.blocks_file_sink_0, 0))
-        self.connect((self.blocks_throttle_0, 0), (self.qtgui_sink_x_0, 0))
-        self.connect((self.channels_channel_model_0, 0), (self.blocks_throttle_0, 0))
+        self.connect((self.blocks_file_source_0, 0), (self.qtgui_sink_x_0, 0))
+        self.connect((self.blocks_file_source_0, 0), (self.uhd_usrp_sink_0, 0))
 
 
     def closeEvent(self, event):
@@ -123,13 +128,21 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
         self.settings.setValue("geometry", self.saveGeometry())
         event.accept()
 
+    def get_tx_freq(self):
+        return self.tx_freq
+
+    def set_tx_freq(self, tx_freq):
+        self.tx_freq = tx_freq
+        self.uhd_usrp_sink_0.set_center_freq(self.tx_freq, 0)
+
     def get_samp_rate(self):
         return self.samp_rate
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.blocks_throttle_0.set_sample_rate(self.samp_rate)
         self.qtgui_sink_x_0.set_frequency_range(0, self.samp_rate)
+        self.uhd_usrp_sink_0.set_samp_rate(self.samp_rate)
+        self.uhd_usrp_sink_0.set_bandwidth(self.samp_rate, 0)
 
 
 

@@ -36,10 +36,13 @@ queue = load_file(filename)
 print("Started")
 max_queue_cnt = 10
 #while (True):
-css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH);
+symbols= np.ones(100)*5
+PAYLOAD_LEN= 100
+NUMPKTS=1
+css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH, symbols,PAYLOAD_LEN,NUMPKTS);
 output = []
 css_demodulator.css_demod([], queue, output)     
-if (len(output) > 1):
-    print(output)
+
+print(output)
 print("Done.")
     

@@ -33,7 +33,7 @@ with open(gnd_truth_data,'rb') as f:
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
 #RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
-RAW_FS = 500000           # value should be kept <= expected length, so that we don't miss empty space
+RAW_FS = 200000           # value should be kept <= expected length, so that we don't miss empty space
 
 LORA_CHANNELS = [1]  # channels to process
 
@@ -70,6 +70,8 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
     ###########################################################################################################
     #css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH);
     css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH, symbols,PAYLOAD_LEN,NUMPKTS);
+    outfile = ('../simpleTX_sim/'+exp_root_folder + '/' + exp_folder + '/' + 'error_out')
+    css_demodulator.setErrorMeasurementFile(outfile)
     print("Started")
     max_queue_cnt = 10
     while (True):
@@ -78,7 +80,8 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
             output = []
             css_demodulator.css_demod(my_channel, queue, output)     
             if (len(output) >= 1):
-                print(output)
+                #print(output)
+                print("====")
     print("Done.")
         
 def IQ_SOURCE(chan, chan_num):

@@ -16,8 +16,8 @@ import math
 import numpy as np
 from scipy import signal, fft
 from scipy.signal import find_peaks
-from statistics import mean
-
+from statistics import mean 
+import pickle
 import scipy.io
 
 class CssDemod:
@@ -86,11 +86,14 @@ class CssDemod:
         
         self.doppler_cum = 0
         
+        self.BAD_DELIM = False
+        
         # error measuremnts
         self.GND_TRUTH_PKT=GND_TRUTH_PKT
         self.EXP_PAY_LEN=EXP_PAY_LEN
         self.EXP_PKTS=EXP_PKTS
                 
+        self.OUTFILE = 'tmp.pkl'
     def checkXCORR(self, queue_list,possible_idx):
         #corr_offset = 50 # number of samples we want to precede the corrrelation, ensures we have a peak to detect in the presense of noise
         corr_offset = self.PREAMBLE_SIZE*2
@@ -98,27 +101,40 @@ class CssDemod:
             self.PREV_QUEUE = [] 
             return 1
         
+        '''
         #print("First pos:", possible_idx[0])
         if (min(possible_idx) < corr_offset):
             possible_idx_diff = np.diff(possible_idx)  
             pdx_diff = np.atleast_1d(np.squeeze(np.argwhere(possible_idx_diff > self.PREAMBLE_SIZE)))
             #pdx_diff = np.argwhere(possible_idx_diff > self.PREAMBLE_SIZE)
             
-            '''
+            
             plt.figure(1)
             xpts =range(0, len(possible_idx_diff))
             plt.plot(xpts, (possible_idx_diff))
             plt.show()
-            '''
+          
             
             if pdx_diff.size > 0: 
                 #print("PDX PDX")
                 possible_idx =  possible_idx[(pdx_diff[0]+1):] - corr_offset
             else:           
                 print("No received signal, or the signal spills over into the previous queue item")                
-                return 1    
+                return 1
+            
         else: 
+        '''
+        if (min(possible_idx) < corr_offset):
+            possible_idx = possible_idx
+            
+            plt.figure(1)
+            xpts =range(0, len(queue_list))
+            plt.plot(xpts, (queue_list))
+            plt.show()
+            
+        else:
             possible_idx = possible_idx - corr_offset
+            
         print(np.squeeze(possible_idx[0]))
         queue_list = queue_list[np.squeeze(possible_idx[0]):]
         if (len(queue_list) < self.PREAMBLE_SIZE*4): 
@@ -185,9 +201,10 @@ class CssDemod:
                 
         #self.PACKET_LEN = self.symbol_demod(self.PREV_QUEUE)
         self.PACKET_LEN =  pkt_len_2 + self.N*pkt_len_1
+        
         if (self.PACKET_LEN > 1000):
             self.PACKET_LEN = 1000
-            print("Warning: pkt length too big. Sync is off")
+            print("For testing: pkt length too big. Sync is off")
             return
         
         #self.PACKET_LEN = 1001
@@ -198,6 +215,7 @@ class CssDemod:
         return 0 
         
     def css_demod(self, my_channel, queue, output):    
+        
         print("Starting Demod")
         #print(len(queue))
         
@@ -218,6 +236,13 @@ class CssDemod:
             queue = queue * np.exp(1j * 2 * math.pi * freq_shift * self.t)    
         '''
         self.PREV_QUEUE = np.concatenate((self.LEFTOVER, list(queue)))
+        
+        # reject any bad samples from a misred delimeter 
+        if (self.BAD_DELIM):
+            print("disp",(len(self.END_DELIMETER)-self.END_COUNTER)*self.WINDOW_SIZE)
+            if ((len(self.END_DELIMETER)-self.END_COUNTER) > 0):
+                self.PREV_QUEUE = self.PREV_QUEUE[int((len(self.END_DELIMETER)-self.END_COUNTER)*self.WINDOW_SIZE):]
+                self.BAD_DELIM = False
         '''
         plt.figure(1)
         xpts =range(0, len(self.PREV_QUEUE))
@@ -262,16 +287,17 @@ class CssDemod:
                         if (sym != curr_sym):
                                 #print(sym, curr_sym)
                                 print("Bad delimeter; sync might not be correct.")
-                                self.END_COUNTER =  len(self.END_DELIMETER)
+                                #self.END_COUNTER =  len(self.END_DELIMETER)
                                 self.PACKET_DETECTED = False
                                 output.append(self.OUTPUT_PKT)
                                 output = self.OUTPUT_PKT
+                                self.BAD_DELIM = True
                                 break
                         self.END_COUNTER = self.END_COUNTER + 1
                     else: 
                         
                         self.TOTAL_PKT_CNT = self.TOTAL_PKT_CNT + 1
-                        print("TOTAL PACKET COUNT: ", self.TOTAL_PKT_CNT)
+                        
                         self.error_measurement()
                         self.END_COUNTER = 0
                         self.PACKET_DETECTED = False
@@ -279,9 +305,16 @@ class CssDemod:
                         self.PACKETS_DECODED = 0
         self.LEFTOVER = self.PREV_QUEUE
     
+    def setErrorMeasurementFile(self,filename): 
+        self.OUTFILE = filename 
+        
     def error_measurement(self):
+        with open(self.OUTFILE+'_'+str(self.TOTAL_PKT_CNT) + '.pkl', 'wb') as f: 
+            pickle.dump([self.GND_TRUTH_PKT,  self.OUTPUT_PKT, self.TOTAL_PKT_CNT],f)
+    
         print('NUM ERRORs:',sum(np.subtract(self.GND_TRUTH_PKT, self.OUTPUT_PKT)))
-        print(len(self.GND_TRUTH_PKT), len(self.OUTPUT_PKT))
+        #print(len(self.GND_TRUTH_PKT), len(self.OUTPUT_PKT))
+        print("TOTAL PACKET COUNT: ", self.TOTAL_PKT_CNT)
     def get_doppler(self, reference, rx_data, doppler_freq,step,t): 
         '''
         Corrects doppler shift based on the known preamble 

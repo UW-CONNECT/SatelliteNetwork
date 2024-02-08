@@ -69,7 +69,8 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
             output = []
             css_demodulator.css_demod(my_channel, queue, output)     
             if (len(output) >= 1):
-                print(output)
+                #print(output)
+                print("=====")
     print("Done.")
         
 def IQ_SOURCE(chan, chan_num):
