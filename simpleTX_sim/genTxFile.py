@@ -49,7 +49,9 @@ bsl = len(bin_dat)
 #bin_dat = np.concatenate((np.zeros((bsl)), bin_dat))
 #print(bin_dat.shape)
 #print(len(bin_dat))
-bin_dat = np.append(np.float32(np.zeros((bsl))),bin_dat)
+buffer_dat = N*UPSAMP*50*32
+bin_dat = np.append(np.float32(np.zeros((buffer_dat))),bin_dat)
+#bin_dat = np.append(np.float32(np.zeros((bsl))),bin_dat)
 bin_dat = bin_dat.tobytes()
 
 print(len(bin_dat))

@@ -89,11 +89,12 @@ class CssDemod:
         self.BAD_DELIM = False
         
         # error measuremnts
-        self.GND_TRUTH_PKT=GND_TRUTH_PKT
+        self.GND_TRUTH_PKT=GND_TRUTH_PKT.astype(int)
         self.EXP_PAY_LEN=EXP_PAY_LEN
         self.EXP_PKTS=EXP_PKTS
                 
         self.OUTFILE = 'tmp.pkl'
+        
     def checkXCORR(self, queue_list,possible_idx):
         #corr_offset = 50 # number of samples we want to precede the corrrelation, ensures we have a peak to detect in the presense of noise
         corr_offset = self.PREAMBLE_SIZE*2
@@ -130,8 +131,7 @@ class CssDemod:
             plt.figure(1)
             xpts =range(0, len(queue_list))
             plt.plot(xpts, (queue_list))
-            plt.show()
-            
+            plt.show()            
         else:
             possible_idx = possible_idx - corr_offset
             
@@ -165,7 +165,6 @@ class CssDemod:
         argm = np.argmax(xcorr_arr)
         max_xcorr = max(xcorr_arr)
                       
-        #peakdx = int(possible_idx[0]+imax_peak ) - 7        # why the magic number 7?
         peakdx = int(possible_idx[0]+imax_peak )  
        
         '''
@@ -173,6 +172,7 @@ class CssDemod:
         xpts =range(0, len(xcorr_arr))
         plt.plot(xpts, (xcorr_arr))
         plt.axvline(x = imax_peak, color = 'b', label = 'axvline - full height')
+        plt.show()
         
         plt.figure(2)
         xpts =range(0, len(self.PREV_QUEUE))
@@ -188,7 +188,6 @@ class CssDemod:
         freq_shift = self.get_doppler(self.REF_PREAMBLE, self.PREV_QUEUE[:self.PREAMBLE_SIZE*2],self.FD_MAX,2,t)
         t = np.linspace(0, len(self.PREV_QUEUE)/self.FS, len(self.PREV_QUEUE))
         self.PREV_QUEUE = self.PREV_QUEUE * np.exp(1j * 2 * math.pi * freq_shift * t)    
-        #print(freq_shift)
         
         self.PACKET_DETECTED = True
         self.OUTPUT_PKT = []
@@ -214,15 +213,11 @@ class CssDemod:
         
         return 0 
         
-    def css_demod(self, my_channel, queue, output):    
-        
+    def css_demod(self, my_channel, queue, output):            
         print("Starting Demod")
         #print(len(queue))
         
         freq_shift = self.doppler_cum
-        #print(self.doppler_cum)
-        #print(freq_shift)
-        #print("Freq bin:", freq_bin, "Freq shift: ", freq_shift)
         self.t= np.linspace(0, len(queue)/self.FS, len(queue))
         queue = queue * np.exp(1j * 2 * math.pi * freq_shift * self.t) 
        
@@ -249,35 +244,28 @@ class CssDemod:
         plt.plot(xpts, 10*np.log10(abs(self.PREV_QUEUE)))
         plt.show()
         '''
-        #print("Max Rx: ", max(10*np.log10(abs(self.PREV_QUEUE))))
-        #print(self.PACKET_DETECTED)
-        #print(max(10*np.log10(abs(self.PREV_QUEUE))))
+        freq_bin = []
         while (len(self.PREV_QUEUE) > self.WINDOW_SIZE): 
-            
             if (self.PACKET_DETECTED == False):            
                 possible_idx = np.squeeze(np.argwhere(10*np.log10(abs(self.PREV_QUEUE)) > self.DB_THRESH))
-                #possible_idx = np.array(range(20, len(self.PREV_QUEUE)))
                 if (possible_idx.size <= 1):
-                    #print("Not enough indices: only ", possible_idx.size)
                     print("Max Rx: ", max(10*np.log10(abs(self.PREV_QUEUE))))
                     self.PREV_QUEUE=[]
                     break
-                
-                ret = self.checkXCORR(self.PREV_QUEUE,possible_idx) 
+                else:
+                    ret = self.checkXCORR(self.PREV_QUEUE,possible_idx) 
                 if (ret == 1): 
                     break
-            elif (self.PACKET_DETECTED == True): 
-                #print("LEN,", len(self.t), len(self.PREV_QUEUE))
+            elif (self.PACKET_DETECTED == True):
+                '''
+                Need to check this -- somewhere it is spilling over.  
+                '''
                 if (self.PACKET_LEN > self.PACKETS_DECODED):
                     freq_bin = self.symbol_demod(self.PREV_QUEUE) 
-                                
                     self.OUTPUT_PKT.append(freq_bin)
-                    
                     self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]
                     self.t = self.t[self.WINDOW_SIZE:]
-                    self.PACKETS_DECODED = self.PACKETS_DECODED + 1
-                    
-                    #print("PQ: ", len(self.PREV_QUEUE))
+                    self.PACKETS_DECODED = self.PACKETS_DECODED + 1                    
                 else:
                     # check that our end delimeter is there 
                     if (self.END_COUNTER < len(self.END_DELIMETER)): 
@@ -285,9 +273,8 @@ class CssDemod:
                         curr_sym = self.symbol_demod(self.PREV_QUEUE)
                         self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]
                         if (sym != curr_sym):
-                                #print(sym, curr_sym)
                                 print("Bad delimeter; sync might not be correct.")
-                                #self.END_COUNTER =  len(self.END_DELIMETER)
+                                self.error_measurement()
                                 self.PACKET_DETECTED = False
                                 output.append(self.OUTPUT_PKT)
                                 output = self.OUTPUT_PKT
@@ -295,16 +282,16 @@ class CssDemod:
                                 break
                         self.END_COUNTER = self.END_COUNTER + 1
                     else: 
-                        
+                        self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]
                         self.TOTAL_PKT_CNT = self.TOTAL_PKT_CNT + 1
-                        
                         self.error_measurement()
                         self.END_COUNTER = 0
                         self.PACKET_DETECTED = False
                         output.append(self.OUTPUT_PKT)
                         self.PACKETS_DECODED = 0
+        print("Freq Bin:",freq_bin)
         self.LEFTOVER = self.PREV_QUEUE
-    
+        
     def setErrorMeasurementFile(self,filename): 
         self.OUTFILE = filename 
         
@@ -313,17 +300,16 @@ class CssDemod:
             pickle.dump([self.GND_TRUTH_PKT,  self.OUTPUT_PKT, self.TOTAL_PKT_CNT],f)
     
         print('NUM ERRORs:',sum(np.subtract(self.GND_TRUTH_PKT, self.OUTPUT_PKT)))
-        #print(len(self.GND_TRUTH_PKT), len(self.OUTPUT_PKT))
+        print("Ground Truth:",self.GND_TRUTH_PKT)
+        print("Output:", self.OUTPUT_PKT)
         print("TOTAL PACKET COUNT: ", self.TOTAL_PKT_CNT)
+        
     def get_doppler(self, reference, rx_data, doppler_freq,step,t): 
         '''
         Corrects doppler shift based on the known preamble 
         '''       
-        #f_d = range(-doppler_freq, doppler_freq, step)
         f_d = np.arange(-doppler_freq, doppler_freq, step)
         xcorr_arr = []
-        
-        #print(np.array(f_d))
         for f in f_d: 
             t = np.linspace(0, len(reference)/self.FS, len(reference))
             data_shifted = rx_data * np.exp(1j * 2 * math.pi * f * t)        
@@ -343,7 +329,6 @@ class CssDemod:
             plt.show()
         '''
         # doppler needs to be updated at queue boundaries! 
-        #self.doppler_cum.append(freq_bin_shift)
         self.doppler_cum = self.doppler_cum + freq_bin_shift
         
         return freq_bin_shift
@@ -363,11 +348,7 @@ class CssDemod:
                     data_fft[int(self.N/2 + int(self.UPSAMP-1)*self.N + 1):]))
                  
         freq_bin = np.argmax(dechirped)
-        
-        #freq_shift = self.get_doppler(self.UPCHIRP, self.PREV_QUEUE[:self.WINDOW_SIZE],self.FD_FINE,1)
         freq_shift = self.get_doppler(self.sym_to_data_ang([freq_bin],self.N, self.UPSAMP), self.PREV_QUEUE[:self.WINDOW_SIZE],20,2,self.tr)
-        #print(freq_shift)
-        #print("Freq bin:", freq_bin, "Freq shift: ", freq_shift)
         self.t= np.linspace(0, len(self.PREV_QUEUE)/self.FS, len(self.PREV_QUEUE))
         self.PREV_QUEUE = self.PREV_QUEUE * np.exp(1j * 2 * math.pi * freq_shift * self.t)    
                 
@@ -413,7 +394,7 @@ class CssDemod:
                 nz_h_2 = data_fft[int(len(data_fft)/2):]
                 parts = np.concatenate((nz_h_1, zeroes_h , nz_h_2))
                 data_upsamp = fft.ifft(parts)           
-                data = data_upsamp
+                data = data_upsamp*self.UPSAMP
                  
             out_data = np.append(out_data, data)
         return out_data

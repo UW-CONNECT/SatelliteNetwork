@@ -81,7 +81,8 @@ class CssMod:
                     nz_h_2 = data_fft[int(len(data_fft)/2):]
                     parts = np.concatenate((nz_h_1, zeroes_h , nz_h_2))
                     data_upsamp = fft.ifft(parts)           
-                    data = data_upsamp * self.UPSAMP
+                    #data = data_upsamp * self.UPSAMP
+                    data = data_upsamp
                                 
                 out_data = np.append(out_data, data)
             return out_data

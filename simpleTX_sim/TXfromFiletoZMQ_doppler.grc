@@ -36,7 +36,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '200000'
+    value: 200e6
   states:
     bus_sink: false
     bus_source: false
@@ -50,7 +50,7 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    const: '0'
+    const: '1'
     maxoutbuf: '0'
     minoutbuf: '0'
     type: complex
@@ -68,7 +68,7 @@ blocks:
     alias: ''
     append: 'False'
     comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\test_files\SF9100s_035chan
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\ber_desktop_testing\10pkts_sf9_20kbw_payload100\trial1_035chan
     type: complex
     unbuffered: 'False'
     vlen: '1'
@@ -86,7 +86,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\doppler_sim_scripts\GNURADIO_DOP_REF
+    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\doppler_sim_scripts\GNURADIO_DOP_REF_NEW
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -98,7 +98,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [95, 303]
+    coordinate: [72, 271]
     rotation: 0
     state: enabled
 - name: blocks_file_source_1
@@ -120,9 +120,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [80, 170]
+    coordinate: [29, 77]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_multiply_xx_0
   id: blocks_multiply_xx
   parameters:
@@ -140,7 +140,7 @@ blocks:
     bus_structure: null
     coordinate: [361, 185]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_throttle_0
   id: blocks_throttle
   parameters:
@@ -159,7 +159,7 @@ blocks:
     bus_structure: null
     coordinate: [329, 306]
     rotation: 0
-    state: bypassed
+    state: enabled
 - name: blocks_throttle_1
   id: blocks_throttle
   parameters:
@@ -178,7 +178,7 @@ blocks:
     bus_structure: null
     coordinate: [230, 101]
     rotation: 0
-    state: true
+    state: disabled
 - name: channels_channel_model_0
   id: channels_channel_model
   parameters:
@@ -197,7 +197,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [483, 38]
+    coordinate: [506, 34]
     rotation: 0
     state: enabled
 - name: qtgui_sink_x_0
@@ -226,7 +226,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [803, 45]
+    coordinate: [806, 25]
     rotation: 0
     state: true
 - name: zeromq_pub_sink_0
@@ -247,7 +247,7 @@ blocks:
     bus_structure: null
     coordinate: [803, 160]
     rotation: 0
-    state: enabled
+    state: disabled
 
 connections:
 - [analog_const_source_x_0, '0', blocks_throttle_1, '0']
@@ -255,6 +255,7 @@ connections:
 - [blocks_file_source_1, '0', blocks_throttle_1, '0']
 - [blocks_multiply_xx_0, '0', channels_channel_model_0, '0']
 - [blocks_throttle_0, '0', blocks_multiply_xx_0, '1']
+- [blocks_throttle_0, '0', channels_channel_model_0, '0']
 - [blocks_throttle_1, '0', blocks_multiply_xx_0, '0']
 - [channels_channel_model_0, '0', blocks_file_sink_0, '0']
 - [channels_channel_model_0, '0', qtgui_sink_x_0, '0']

@@ -21,7 +21,7 @@ N = 2**SF
 UPSAMP = 10
 NUMPKTS = 10
 BW = 4
-PAYLOAD_LEN = 100 
+PAYLOAD_LEN = 100
 exp_root_folder = 'ber_desktop_testing'
 exp_folder = '10pkts_sf9_20kbw_payload100'
 trial_name = "trial1"
@@ -31,11 +31,14 @@ Path('ground_truth/'+exp_root_folder+'/'+exp_folder+'/').mkdir(parents=True, exi
 fileout_name = exp_root_folder+'/'+exp_folder+'/'+trial_name
 gt_fileout_name = 'ground_truth/'+exp_root_folder+'/'+exp_folder+'/'+trial_name+'.pkl'
 
-symbols = []
-#symbols = np.ones(100)*5
-for i in range(0, PAYLOAD_LEN):
-    symbols.append(random.randint(0,N))
+#symbols = []
+#symbols = np.ones(PAYLOAD_LEN)*5
 
+symbols = []
+for i in range(0, PAYLOAD_LEN):
+    symbols.append(random.randint(0,N-1))
+symbols = np.asarray(symbols)
+#print(len(symbols),len(symbols2))
 preamble = [1,1]
 end_delimeter = [3,3,3,3] 
 css_modulator = CssMod(N, UPSAMP, preamble, end_delimeter) 

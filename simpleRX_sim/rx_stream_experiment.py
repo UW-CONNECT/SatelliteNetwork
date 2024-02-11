@@ -15,7 +15,8 @@ from threading import Thread
 from queue import Queue
 import numpy as np
 from utils import *
-from css_demod import CssDemod
+#from css_demod import CssDemod
+from css_demod_2 import CssDemod
 import pickle
 import zmq
 
@@ -24,6 +25,7 @@ from matplotlib import pyplot as plt
 #### Load data related to the experiment for BER/SNR/etc
 exp_root_folder = 'ber_desktop_testing'
 exp_folder = '10pkts_sf9_20kbw_payload100'
+#exp_folder = '10000pkts_sf9_20kbw_payload100'
 trial_name = "trial1"
 #### 
 gnd_truth_data = '../simpleTX_sim/ground_truth'+'/'+exp_root_folder + '/' + exp_folder + '/' + trial_name + '.pkl'
@@ -33,7 +35,7 @@ with open(gnd_truth_data,'rb') as f:
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
 #RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
-RAW_FS = 200000           # value should be kept <= expected length, so that we don't miss empty space
+RAW_FS = 500000           # value should be kept <= expected length, so that we don't miss empty space
 
 LORA_CHANNELS = [1]  # channels to process
 
