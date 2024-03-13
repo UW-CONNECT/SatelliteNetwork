@@ -45,7 +45,6 @@ symbols= np.ones(100)*5
 PAYLOAD_LEN= 100
 NUMPKTS=1
 
-
 exp_root_folder = 'ber_desktop_testing'
 exp_folder = '10pkts_sf9_20kbw_payload100'
 #exp_folder = '10000pkts_sf9_20kbw_payload100'

@@ -16,7 +16,7 @@ from matplotlib import pyplot as plt
 import pickle
 
 outfile = "ISS_doppler_sim_437_8.pkl"
-time_next_pass = 55
+time_next_pass = 23.9*60
 t_end_of_pass = 20
 sat = EarthSatellite('1 25544U 98067A   23349.38384836  .00022434  00000+0  39396-3 0  9991',
                      '2 25544  51.6414 151.0242 0002072  34.3439  48.5014 15.50428682429890')

@@ -63,7 +63,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\SatelliteNetwork\simpleTX_sim\ber_desktop_testing\10pkts_sf9_20kbw_payload100\trial1
+    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -75,7 +75,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [158, 193]
+    coordinate: [74, 141]
     rotation: 0
     state: true
 - name: qtgui_sink_x_0
@@ -220,7 +220,7 @@ blocks:
     comment: ''
     dev_addr: '""'
     dev_args: '""'
-    gain0: '60'
+    gain0: '.7'
     gain1: '0'
     gain10: '0'
     gain11: '0'
@@ -320,7 +320,7 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     nchan: '1'
-    norm_gain0: 'False'
+    norm_gain0: 'True'
     norm_gain1: 'False'
     norm_gain10: 'False'
     norm_gain11: 'False'
@@ -381,7 +381,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [579, 165]
+    coordinate: [575, 170]
     rotation: 0
     state: enabled
 

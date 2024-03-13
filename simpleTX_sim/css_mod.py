@@ -15,10 +15,14 @@ from scipy import signal, fft
 
 import scipy.io
 class CssMod:
-    def __init__(self, N, UPSAMP, preamble, end_delimeter):
+    def __init__(self, N, SF, BW, FS, preamble, end_delimeter):
         self.N = N 
         
-        self.UPSAMP = UPSAMP 
+        self.SF = SF 
+        
+        self.BW = BW 
+        
+        self.FS = FS 
         
         self.PREAMBLE =  preamble
         
@@ -37,56 +41,56 @@ class CssMod:
             print("Payload is too big, max size is: ", self.N)
             #return 
        
-        pkt = self.sym_to_data_ang(np.concatenate((self.PREAMBLE , [pkt_length_2], [pkt_length_1], symbols , self.END_DELIMETER)))
-        
+        #pkt = self.sym_to_data_ang(np.concatenate((self.PREAMBLE , [pkt_length_2], [pkt_length_1], symbols , self.END_DELIMETER)))
+        pkt = self.sym_2_css(np.concatenate((self.PREAMBLE , [pkt_length_2], [pkt_length_1], symbols , self.END_DELIMETER)),  self.N, self.SF, self.BW, self.FS)
+        print("pkt shape",pkt.shape)
         return pkt   
+    
+    
+
+    def sym_2_css(self, symbol, N, SF, BW, Fs): 
+        '''
+        sym_2_css :: Modules a symbol between (0,N-1) to a chirp  
         
-    def sym_to_data_ang(self, symbol):
-            '''
-            Via https://github.com/mananmishra11/open-lora/blob/main/std_lora/sym_to_data_ang.py
-            '''
-            data = []
-            out_data = []
-            #accumulator = 0
-            pi = math.pi
+        N = 2^SF 
+        SF 
+        BW = Bandwidth sweep of the chirp -BW/2 to BW/2 
+        Fs = Sampling rate
+        '''
+        sym_out = []
+        
+        # Fs/Bw is upsamp...
+        spsym = int(Fs/BW*N) # symbols defined by their freq offset at the start 
+        
+        T = spsym/Fs
+        k = BW/(T) 
+        f_start = -BW/2 
+        pi = math.pi 
+    
+        for sym in symbol: 
+            st_offset = int(sym)
+            t_arr = np.arange(0, spsym*(N-st_offset)/N)/Fs
+            cs = np.exp(1j * 2 * pi *(t_arr*(f_start + k*T*st_offset/N + 0.5*k*t_arr)))   # don't forget residuals
             
-            for j in symbol:
-                accumulator = 0
-                #samps = self.N * self.UPSAMP 
-                
-                samps = self.N 
-                phase = -pi + (j-1)*(2*pi/samps)
-                temp = np.zeros((samps, 1), complex)
-                #for i in range(0, self.N):
-                
-                for i in range(0, samps):
-                    accumulator = accumulator + phase
-                    polar_radius = 1
+            if (len(t_arr) >0):
+                ang_start = np.angle(cs[len(t_arr)-1]) # we need to keep track of the phase 
+            else: 
+                ang_start = 0
                     
-                    x = polar_radius * math.cos(accumulator)
-                    y = polar_radius * math.sin(accumulator)
-                    temp[i] = complex(x, y)
-                    #phase = phase + (2*pi/self.N)
-                    phase = phase + (2*pi/samps)
-                    
-                data = temp
-                
-                data = np.squeeze(data)
-                
-                # downsample the signal by adding zeros in the fft 
-                if(self.UPSAMP != 0):
-                    data_fft = fft.fft(data)
-                    nz_h_1 = data_fft[:int(len(data_fft)/2)] 
-                    zeroes_h = np.squeeze(np.zeros(((self.UPSAMP-1)*len(data_fft), 1), complex))
-                    nz_h_2 = data_fft[int(len(data_fft)/2):]
-                    parts = np.concatenate((nz_h_1, zeroes_h , nz_h_2))
-                    data_upsamp = fft.ifft(parts)           
-                    #data = data_upsamp * self.UPSAMP
-                    data = data_upsamp
-                                
-                out_data = np.append(out_data, data)
-            return out_data
-           
+            #t_arr = np.arange(0, spsym*st_offset/N - 1)/Fs # [TODO] fix this ... 
+            t_arr = np.arange(0, spsym*st_offset/N )/Fs 
+            ce = np.exp(1j*(ang_start + 2*pi*(t_arr*(f_start +0.5*k*t_arr)) ))
+            out_sig = np.concatenate((cs, ce))
+            #sym_out.append(out_sig)
+            sym_out=np.append(sym_out,out_sig)
+            '''
+            plt.figure(1)
+            plt.specgram(out_sig) 
+            plt.title('out')
+            plt.show()
+            '''
+        return sym_out
+    
     def ang2bin(self, data):
         '''
         Convert complex data to binary for GNUradio 

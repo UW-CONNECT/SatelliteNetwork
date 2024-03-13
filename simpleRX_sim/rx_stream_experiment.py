@@ -23,19 +23,28 @@ import zmq
 from matplotlib import pyplot as plt
 
 #### Load data related to the experiment for BER/SNR/etc
-exp_root_folder = 'ber_desktop_testing'
-exp_folder = '10pkts_sf9_20kbw_payload100'
+#exp_root_folder = 'ber_desktop_testing'
+exp_root_folder = '../../experiment_data'
+#exp_root_folder = '../../simulated_data'
+exp_folder = 'SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100'
+#exp_folder = 'SF_8N_256BW_20000FS_200000NPKTS_10PLEN_100'
+#exp_folder = 'SF_9N_512BW_20000FS_200000NPKTS_10PLEN_100'
+#exp_folder = 'SF_10N_1024BW_20000FS_200000NPKTS_10PLEN_100'
+#exp_folder = 'SF_9N_512BW_20000FS_200000NPKTS_100PLEN_100'
+#exp_folder = 'SF_11N_2048BW_20000FS_200000NPKTS_10PLEN_100' 
+#exp_folder = 'SF_12N_4096BW_20000FS_200000NPKTS_10PLEN_100'
 #exp_folder = '10000pkts_sf9_20kbw_payload100'
 trial_name = "trial1"
 #### 
 gnd_truth_data = '../simpleTX_sim/ground_truth'+'/'+exp_root_folder + '/' + exp_folder + '/' + trial_name + '.pkl'
+gnd_truth_data = exp_root_folder + '/' + exp_folder + '/' +"ground_truth_out.pkl"
 with open(gnd_truth_data,'rb') as f: 
     SF, N, UPSAMP,NUMPKTS, BW, PAYLOAD_LEN,preamble,end_delimeter,symbols = pickle.load(f)
 ############################### Variables ###############################
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
-#RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
-RAW_FS = 500000           # value should be kept <= expected length, so that we don't miss empty space
+RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
+#RAW_FS = 500000           # value should be kept <= expected length, so that we don't miss empty space
 
 LORA_CHANNELS = [1]  # channels to process
 
@@ -48,7 +57,9 @@ OVERLAP = 0
 #N = 2**SF
 #UPSAMP = 10;
 #print(SF, N, UPSAMP)
-PREAMBLE_SZ = int(len(preamble)/2)*N*UPSAMP
+#PREAMBLE_SZ = int(len(preamble)/2)*N*UPSAMP
+#PREAMBLE_SZ = 3*N*UPSAMP
+PREAMBLE_SZ = 1*N*UPSAMP
 END_DELIMITER = end_delimeter
 
 # Threshold envelope; at what power level do we expect to see a packet arrive? 
@@ -62,7 +73,9 @@ END_DELIMITER = end_delimeter
 #DB_THRESH = -33.4
 #DB_THRESH = -8   # sim at .035 noise
 #DB_THRESH = -5.5
-DB_THRESH = -9.5
+FS = 200000
+#DB_THRESH = -7
+DB_THRESH = -11
 ##########################################################################
 
 def spawn_a_worker(my_channel, input_queue, output_queue):
@@ -71,7 +84,8 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
     # worker.start_consuming()
     ###########################################################################################################
     #css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH);
-    css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH, symbols,PAYLOAD_LEN,NUMPKTS);
+    #css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH, symbols,PAYLOAD_LEN,NUMPKTS,SF);
+    css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH, symbols,PAYLOAD_LEN,NUMPKTS,SF,BW,FS);
     outfile = ('../simpleTX_sim/'+exp_root_folder + '/' + exp_folder + '/' + 'error_out')
     css_demodulator.setErrorMeasurementFile(outfile)
     print("Started")
