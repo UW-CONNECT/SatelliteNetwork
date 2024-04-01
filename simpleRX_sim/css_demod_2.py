@@ -9,9 +9,11 @@ from statistics import mean
 import pickle
 import scipy.io
 import scipy.signal
+from Hamming import Hamming
+
 class CssDemod():
     def __init__(self, N, UPSAMP,PREAMBLE_SIZE,END_DELIMETER, 
-        DB_THRESH, GND_TRUTH_PKT,EXP_PAY_LEN,EXP_PKTS,SF,BW,Fs):
+        DB_THRESH, GND_TRUTH_PKT,EXP_PAY_LEN,EXP_PKTS,SF,BW,FS,CR=0):
     #def __init__(self, N, UPSAMP,PREAMBLE_SIZE,END_DELIMETER, 
     #    DB_THRESH, GND_TRUTH_PKT=[],EXP_PAY_LEN=0,EXP_PKTS=0,SF=9,BW=20000,Fs=200000):
         '''
@@ -19,7 +21,7 @@ class CssDemod():
         '''
         self.SF = SF
         self.BW = BW
-        self.Fs = 200000
+        # self.Fs = 200000
         
         # we need to keep track if  we have detected the preamble 
         self.PACKET_DETECTED = False 
@@ -35,11 +37,7 @@ class CssDemod():
         # Preamble size 
         #self.PREAMBLE_SIZE = UPSAMP * N * 4
         self.PREAMBLE_SIZE = PREAMBLE_SIZE
-        
-        #self.REF_PREAMBLE = self.sym_to_data_ang( [1,1,1], self.N, self.UPSAMP)
-        self.REF_PREAMBLE = self.sym_2_css([1,1,1], self.N, self.SF, self.BW, self.Fs) # assuming that Tx knows this
-        #self.REF_PREAMBLE = self.REF_PREAMBLE[:int(3*len(self.REF_PREAMBLE)/4)]
-        
+                        
         #self.PREAMBLE_SIZE = len(self.REF_PREAMBLE)
         
         # Window size, the size of each chirp 
@@ -47,10 +45,7 @@ class CssDemod():
         
         # This is a list to allocate samples as we identify them 
         self.PREV_QUEUE = []
-        
-        # Redundant; just makes a reference chirp 
-        self.UPCHIRP = self.create_upchirp()
-                
+                               
         # this will be updated during packet detection 
         self.PACKET_LEN = 59
         
@@ -83,10 +78,13 @@ class CssDemod():
         #self.FD_FINE = np.floor((BW/2)//(2**SF)) 
         self.FD_FINE = 1 # this should be based off of the number of FFT points ?
         
-        self.FD_COARSE = 20 # for preamble detection 
+        self.FD_COARSE = 50 # for preamble detection 
         
         # compute this based on parameters?
-        self.FS = 200000
+        # self.FS = 200000
+        self.FS = FS
+        # Redundant; just makes a reference chirp 
+        self.UPCHIRP = self.create_upchirp()
         
         self.tr = np.linspace(0, self.WINDOW_SIZE/self.FS, self.WINDOW_SIZE)
         
@@ -100,9 +98,20 @@ class CssDemod():
         self.EXP_PKTS=EXP_PKTS
                 
         self.OUTFILE = 'tmp.pkl' 
+        self.noise_sig = []     # keep track of noise power for SNR calculation
+        #self.REF_PREAMBLE = self.sym_to_data_ang( [1,1,1], self.N, self.UPSAMP)
+        self.REF_PREAMBLE = self.sym_2_css([1,1,1], self.N, self.SF, self.BW, self.FS) # assuming that Tx knows this
+        #self.REF_PREAMBLE = self.REF_PREAMBLE[:int(3*len(self.REF_PREAMBLE)/4)]
+        self.SNR_win =self.WINDOW_SIZE 
+        self.PKT_SNR = []
+        self.CR = CR
         
+        self.hamming = Hamming(SF, CR)
         
-    def css_demod(self, my_channel, queue, output):   
+    def css_demod(self, my_channel, queue, output): 
+        if (len(self.noise_sig) == 0):
+            self.noise_sig =  self.PREV_QUEUE[:self.SNR_win]     # prevent nan SNR measurement
+    
         print("Starting demod on a new queue")
         freq_shift = self.doppler_cum
         self.t= np.linspace(0, len(queue)/self.FS, len(queue))
@@ -122,8 +131,7 @@ class CssDemod():
             elif self.PREAMBLE_DEMOD and self.PACKET_DETECTED:
                 '''
                 Decode symbols until the packet is exhausted 
-                '''
-                
+                '''                
                 if (self.PACKETS_DECODED < self.PACKET_LEN):
                     sym = self.symbol_demod()
                     #print(sym)
@@ -146,17 +154,22 @@ class CssDemod():
                     #self.PREAMBLE_DEMOD = False
                 else: 
                     self.PACKETS_DECODED = 0
+                    
+                    # Apply hamming decoding 
+                    self.OUTPUT_PKT = self.hamming.decode(self.OUTPUT_PKT, self.CR)                    
+                    
                     output = self.OUTPUT_PKT
                     #print(output)
                     self.PACKET_DETECTED = False
                     self.TOTAL_PKT_CNT  = self.TOTAL_PKT_CNT + 1
                     self.error_measurement()
                     self.PREAMBLE_DEMOD = False
-                    self.doppler_cum = 0 # no reason to propagate this if the duty cycle is too long 
-                pass
+                    #print("Cumulative doppler across this packet", self.doppler_cum )
+                    self.doppler_cum = 0 # no reason to propagate this if the duty cycle is too long                 
             else:
                 possible_idx = np.array([])
-                possible_idx = self.pkt_detection(self.PREV_QUEUE, SF=self.SF, BW=20000, FS=200000, num_preamble=4)
+                # possible_idx = self.pkt_detection(self.PREV_QUEUE, SF=self.SF, BW=20000, FS=200000, num_preamble=4)
+                possible_idx = self.pkt_detection(self.PREV_QUEUE, SF=self.SF, BW=self.BW, FS=self.FS, num_preamble=4)
                 possible_idx = list(set(possible_idx))
                 possible_idx.sort()
                 # do fine checks around the possible indices, only allow 1 pkt per frame 
@@ -170,7 +183,13 @@ class CssDemod():
                     #self.PREV_QUEUE = np.array([])
                 '''    
                 # no longer need to do xcorr here - should be precise anyways! 
-                if len(possible_idx) > 0:                       
+                if len(possible_idx) > 0:          
+                    SNR_win = self.WINDOW_SIZE           
+                    # if there are previous samples, use them to measure SNR [TO DO: this is not quite seamless]
+                    if (len(self.PREV_QUEUE[:possible_idx[0]]) >= SNR_win):
+                        # noise_power = np.sqrt(np.mean((self.PREV_QUEUE[(possible_idx[0]-self.WINDOW_SIZE):possible_idx[0]])**2))
+                        self.noise_sig = self.PREV_QUEUE[(possible_idx[0]-SNR_win):possible_idx[0]]
+                                                
                     self.PREV_QUEUE = self.PREV_QUEUE[possible_idx[0]:]
                     self.PACKET_DETECTED = True
                             
@@ -205,11 +224,10 @@ class CssDemod():
         t = np.linspace(0, len(self.REF_PREAMBLE)/self.FS, len(self.REF_PREAMBLE))
         t = np.linspace(0, len(self.PREV_QUEUE)/self.FS, len(self.PREV_QUEUE))
         #freq_shift = 0 #[remove this]
-          
-        
+                  
         freq_shift = self.get_doppler_preamble(self.REF_PREAMBLE, self.PREV_QUEUE[:len(self.REF_PREAMBLE)],self.FD_MAX,self.FD_COARSE,t)
         
-        print('Doppler preamble Frequency shift,', freq_shift)
+        #print('Doppler preamble Frequency shift,', freq_shift)
         
         self.PREV_QUEUE = self.PREV_QUEUE * np.exp(1j * 2 * math.pi * freq_shift * t)
         
@@ -228,6 +246,22 @@ class CssDemod():
         
         self.PREV_QUEUE = self.PREV_QUEUE[len(self.REF_PREAMBLE):]                  
         
+        # SNR Measurement after doppler correction (for filtering) 
+        self.noise_sig = scipy.signal.decimate(self.noise_sig, 10)
+        # noise_sig = self.noise_sig
+        SNR_win = self.WINDOW_SIZE 
+        noise_power = np.sqrt(np.mean(np.real(self.noise_sig)*np.real(self.noise_sig)+ np.imag(self.noise_sig)*np.imag(self.noise_sig)))**2 / (SNR_win*self.UPSAMP)
+        signal_sig = self.PREV_QUEUE[:SNR_win]
+        # signal_power = np.sqrt(np.mean((self.PREV_QUEUE[possible_idx[0]:(possible_idx[0]+self.WINDOW_SIZE)])**2))
+        signal_sig = scipy.signal.decimate(signal_sig, 10)
+        # print(len(signal_sig))
+        signal_power = np.sqrt(np.mean(np.real(signal_sig)*np.real(signal_sig)+np.imag(signal_sig)*np.imag(signal_sig)))**2 / (SNR_win*self.UPSAMP)
+                       
+        current_SNR = 20 * np.log10( (signal_power-noise_power) / noise_power) 
+        self.PKT_SNR=current_SNR
+        print("SNR For this packet: ", current_SNR)     
+        # print(colored(("SNR For this packet: ", current_SNR), 'green', 'on_red'))
+                
         pkt_len_2 = self.symbol_demod()
                        
         pkt_len_1 = self.symbol_demod()
@@ -290,6 +324,62 @@ class CssDemod():
         self.PREV_QUEUE = self.PREV_QUEUE[self.WINDOW_SIZE:]        
         return freq_bin    
     
+    def checkXCORR2(self, possible_samples):               
+        detected = False 
+        peakdx = 0
+        
+        xcorr_arr = [];
+        xm_arr= [] 
+        # t = np.linspace(0, len(self.REF_PREAMBLE)/self.FS, len(self.REF_PREAMBLE))
+        window_2 = self.REF_PREAMBLE
+        for i in range(0,len(possible_samples) - 3*len(self.REF_PREAMBLE)) :     
+            window_1 = possible_samples[ i : ( i + len(self.REF_PREAMBLE)) ]         
+            # window_2 = 
+            
+            
+            # this scales the correlation between 0,1
+            fft_window1 = (window_1 - np.mean(window_1)) / (np.std(window_1) * len(window_1))
+            fft_window2 = (window_2 - np.mean(window_2)) / (np.std(window_2))
+            
+            xcorr_val = np.squeeze(abs(np.correlate(fft_window1, fft_window2)))     
+            
+            
+            xcorr_arr.append(xcorr_val)
+            #xcorr_arr.append(xcorr_val) 
+                    
+        xcorr_arr = np.array(xcorr_arr, dtype="object")
+        
+        if len(xcorr_arr) == 0:
+            return detected, peakdx
+        argm = np.argmax(xcorr_arr)
+        # # reject samples without any correlation 
+        #print(max(xcorr_arr))
+        # detected = True
+        if (max(xcorr_arr) > .05 and (argm != len(xcorr_arr)-1) and (argm != 0) ):
+            detected = True
+            print("Packet detected.")
+ 
+                
+        #imax_peak = np.argmax(xcorr_arr)
+        max_xcorr = max(xcorr_arr)
+        peakdx = argm           
+                   
+        #[peaks, properties] = signal.find_peaks(xcorr_arr)
+        
+        #if peaks is not None: 
+     
+        if detected: 
+            plt.figure(2)
+            plt.plot(xcorr_arr)
+            plt.axvline(x = peakdx, color = 'r')  
+            #print(detected)
+            #plt.figure(3)
+            #plt.plot(xm_arr)        
+            plt.show()       
+        
+        return detected, peakdx       
+    
+    
     def checkXCORR(self, possible_samples):               
         detected = False 
         peakdx = 0
@@ -307,20 +397,32 @@ class CssDemod():
             xcorr_val = np.squeeze(abs(np.correlate(fft_window1, fft_window2)))
             
             fft_window3 = (window_3 - np.mean(window_3)) / (np.std(window_3))
-            xcorr_val2 = np.squeeze(abs(np.correlate(fft_window1, fft_window3)))
-            xcorr_arr.append(xcorr_val + xcorr_val2)
-            #xcorr_arr.append(xcorr_val) 
+            xcorr_val2 = np.squeeze(abs(np.correlate(fft_window1, fft_window3)))            
             
-        
+            
+            fft_window2 = (window_2 - np.mean(window_2)) / (np.std(window_2) * len(window_2))
+            fft_window3 = (window_3 - np.mean(window_3)) / (np.std(window_3))
+            
+            xcorr_val3 = np.squeeze(abs(np.correlate(fft_window2, fft_window3)))
+            # print(xcorr_val3)
+            # xcorr_arr.append(xcorr_val * xcorr_val2 * xcorr_val3 * 1000)
+            xcorr_arr.append((xcorr_val + xcorr_val2 + xcorr_val3)**2 )
+            #xcorr_arr.append(xcorr_val) 
+                    
         xcorr_arr = np.array(xcorr_arr, dtype="object")
+        
+        # xcorr_arr = xcorr_arr / max(xcorr_arr)
         
         if len(xcorr_arr) == 0:
             return detected, peakdx
         argm = np.argmax(xcorr_arr)
-        # reject samples without any correlation 
-        if (max(xcorr_arr) > .2 and (argm != len(xcorr_arr)-1) and (argm != 0) ):
+        # # reject samples without any correlation 
+        #print(max(xcorr_arr))
+        # detected = True
+        if (max(xcorr_arr) > .04 and (argm != len(xcorr_arr)-1) and (argm != 0) ):
             detected = True
-            #print("Packet detected.")
+            print("Packet detected.")
+     
                 
         #imax_peak = np.argmax(xcorr_arr)
         max_xcorr = max(xcorr_arr)
@@ -377,6 +479,7 @@ class CssDemod():
         self.doppler_cum = self.doppler_cum + freq_bin_shift
         
         return freq_bin_shift
+        
     def get_doppler(self, reference, rx_data, doppler_freq,step,t): 
         '''
         Corrects doppler shift based on the known preamble 
@@ -410,18 +513,21 @@ class CssDemod():
         self.doppler_cum = self.doppler_cum + freq_bin_shift
         
         return freq_bin_shift
+        
     def pkt_detection(self, Rx_Buffer, SF, BW, FS, num_preamble):
         upsampling_factor = int(FS / BW)
         N = int(2 ** SF)
         num_preamble -= 1  # need to find n-1 total chirps (later filtered by sync word)
 
-        DC_upsamp = np.conjugate(self.sym_2_css([1],  self.N, self.SF, self.BW, self.FS))
+        DC_upsamp = np.conjugate(self.sym_2_css([0],  self.N, self.SF, self.BW, self.FS))
         # Preamble Detection
         ind_buff = np.array([])
         count = 0
         Pream_ind = np.array([], int)
 
         loop = 0
+        # for off in range(5):
+        # for off in range(3):
         for off in range(3):
             offset = off * upsampling_factor * N // 3
             loop = Rx_Buffer.size // (upsampling_factor * N) - 1
@@ -431,26 +537,35 @@ class CssDemod():
                                          ((i + 1) * upsampling_factor * N) + offset] * DC_upsamp, axis=0))
                 temp_wind_fft_idx = np.concatenate(
                     [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
+                # temp_wind_fft_idx = np.arange(0, upsampling_factor * N)
+                
                 temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
+                
                 b = np.argmax(temp_wind_fft)
                 if len(ind_buff) >= num_preamble:
                     ind_buff = ind_buff[-(num_preamble - 1):]
-                    ind_buff = np.append(ind_buff, b)
-                    
+                    ind_buff = np.append(ind_buff, b)                    
                 else:
                     #pass
                     ind_buff = np.append(ind_buff, b)
                     #print("Overlap")
-                if ((sum(abs(np.diff(np.mod(ind_buff, N + 1)))) <= (num_preamble + 4) or
-                     sum(abs(np.diff(np.mod(ind_buff, N)))) <= (num_preamble + 4) or
-                     sum(abs(np.diff(np.mod(ind_buff, N - 1)))) <= (num_preamble + 4)) and
+                    
+                # if ((sum(abs(np.diff(np.mod(ind_buff, N + 1)))) <= (num_preamble + 4) or
+                     # sum(abs(np.diff(np.mod(ind_buff, N)))) <= (num_preamble + 4) or
+                     # sum(abs(np.diff(np.mod(ind_buff, N - 1)))) <= (num_preamble + 4)) and
+                        # ind_buff.size >= num_preamble - 1):    
+                # if ((sum(abs(np.diff(np.mod(ind_buff, N )))) <= (num_preamble )  and
+                    # ind_buff.size >= num_preamble - 1)):                            
+                if ((sum(abs(np.diff(np.mod(ind_buff, N + 1)))) <= (num_preamble) or
+                     sum(abs(np.diff(np.mod(ind_buff, N)))) <= (num_preamble) or
+                     sum(abs(np.diff(np.mod(ind_buff, N - 1)))) <= (num_preamble)) and
                         ind_buff.size >= num_preamble - 1):
                     if np.sum(np.abs(Rx_Buffer[(i * upsampling_factor * N)
                                                + offset:((i + 1) * upsampling_factor * N) + offset])) != 0:
                         count = count + 1
                         Pream_ind = np.append(Pream_ind, (i - (num_preamble - 1)) * (upsampling_factor * N) + offset)
 
-        #print('Found ', count, ' Preambles')
+        # print('Found ', count, ' Preambles', len(Pream_ind))
         if (count == 1): 
             return []
         if count >= (loop * 0.70):
@@ -459,8 +574,10 @@ class CssDemod():
         
         # Synchronization
         Pream_ind.sort()
+        
+        # print(len(Pream_ind))
         # '''
-        #print("Init pream len:", len(Pream_ind))
+        # print("Init pream len:", len(Pream_ind))
         
         shifts = np.arange(-N / 2, N / 2, dtype=int) * upsampling_factor
         new_pream = []
@@ -486,6 +603,7 @@ class CssDemod():
 
         # sub-sample sync
         Pream_ind = new_pream
+        Pream_ind.sort()
         shifts = np.arange(-upsampling_factor, upsampling_factor + 1, dtype=int)
         for i in range(len(Pream_ind)):
             amp_arr = []
@@ -507,10 +625,8 @@ class CssDemod():
                     amp_arr.append([a, j])
 
             if len(amp_arr) != 0:
-                Pream_ind[i] = Pream_ind[i] + max(amp_arr)[1]    
-        
-        
-       
+                Pream_ind[i] = Pream_ind[i] + max(amp_arr)[1]        
+                
         #print("Init pream len2:", len(Pream_ind))
         '''Added portion'''
         out_preamb = []
@@ -518,6 +634,11 @@ class CssDemod():
         for ind in Pream_ind: 
             possible_samples = Rx_Buffer[ind-1*self.PREAMBLE_SIZE:ind+self.PREAMBLE_SIZE*6+off]
             [detected, peakdx] = self.checkXCORR(possible_samples)       
+            
+            # possible_samples = Rx_Buffer[ind-1*self.PREAMBLE_SIZE:ind+self.PREAMBLE_SIZE*3+off]
+            # [detected, peakdx] = self.checkXCORR2(possible_samples)    
+            
+            
             ind = ind-1*self.PREAMBLE_SIZE + peakdx
             
             if detected: 
@@ -571,14 +692,14 @@ class CssDemod():
         '''
         Create an upchirp which is used to demodulate the symbols 
         '''
-        return self.sym_2_css([0], self.N, self.SF, self.BW, self.Fs)
+        return self.sym_2_css([0], self.N, self.SF, self.BW, self.FS)
         
     def setErrorMeasurementFile(self,filename): 
         self.OUTFILE = filename 
         
     def error_measurement(self):
         with open(self.OUTFILE+'_'+str(self.TOTAL_PKT_CNT) + '.pkl', 'wb') as f: 
-            pickle.dump([self.GND_TRUTH_PKT,  self.OUTPUT_PKT, self.TOTAL_PKT_CNT],f) 
+            pickle.dump([self.GND_TRUTH_PKT,  self.OUTPUT_PKT, self.TOTAL_PKT_CNT,self.PKT_SNR],f) 
     
         #print('NUM ERRORs:',sum(np.subtract(self.GND_TRUTH_PKT, self.OUTPUT_PKT)))
         print("Ground Truth:",self.GND_TRUTH_PKT)

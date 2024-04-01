@@ -10,7 +10,7 @@ from css_mod import CssMod
 #FS = 200000
 FS = 200000
 FS_dop = 100
-infile = "ISS_doppler_sim_437_8.pkl"
+infile = "J:\schellberg\indoor_exp_feb_2024\doppler_simulation_files\ISS_doppler_sim_437_8.pkl"
 nums2 = FS # number of doppler samples (this corresponds to 2 seconds)
 
 # info not needed
@@ -26,6 +26,11 @@ time0, doppler, t_end_of_pass, signal_freq = pickle.load(f)
 f.close()
 
 print(len(doppler))
+
+# mid = int(len(doppler)/2) - 300
+mid = 42300
+nsamps = 100 * 60 * 1
+doppler = doppler[mid-nsamps:mid+nsamps]
 
 # add place for upsamp factor 2k = FS/FsDOp
 
@@ -55,7 +60,7 @@ doppler = np.concatenate((doppler,doppler[::-1]))
 # plt.plot(np.abs(np.diff(doppler())))
 # plt.xlabel('Doppler t = 1/100 s')
 # plt.ylabel('Diff(doppler)')
-# plt.show()
+plt.show()
 
 print(len(doppler))
 '''
@@ -107,15 +112,15 @@ print("OP len",len(output))
 plt.figure(3)
 plt.plot(np.abs(output[:3000]))
 plt.show()
-# plt.figure(2)
-# plt.specgram(output)
-# #plt.plot(np.angle(output))
-# plt.show()
+plt.figure(2)
+plt.specgram(output)
+#plt.plot(np.angle(output))
+plt.show()
 #wsoutput = output[
 css_modulator = CssMod(N, SF, BW, FS, preamble, end_delimeter) 
 bin_dat = np.float32(css_modulator.ang2bin_nopad(output))
 bin_dat = bin_dat.tobytes()
 
-file = open("GNURADIO_linear_8k_sep", 'bw')
+file = open("GNURADIO_linear_apogee", 'bw')
 file.write(bin_dat)
 file.close()

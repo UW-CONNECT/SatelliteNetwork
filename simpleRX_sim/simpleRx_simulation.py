@@ -73,6 +73,7 @@ class simpleRx_simulation(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = 200000
+        self.variable_low_pass_filter_taps_0 = variable_low_pass_filter_taps_0 = firdes.low_pass(1.0, samp_rate, samp_rate/4,samp_rate/8, firdes.WIN_HAMMING, 6.76)
 
         ##################################################
         # Blocks
@@ -121,6 +122,12 @@ class simpleRx_simulation(gr.top_block, Qt.QWidget):
         self.samp_rate = samp_rate
         self.blocks_throttle_0.set_sample_rate(self.samp_rate)
         self.qtgui_sink_x_0.set_frequency_range(0, self.samp_rate)
+
+    def get_variable_low_pass_filter_taps_0(self):
+        return self.variable_low_pass_filter_taps_0
+
+    def set_variable_low_pass_filter_taps_0(self, variable_low_pass_filter_taps_0):
+        self.variable_low_pass_filter_taps_0 = variable_low_pass_filter_taps_0
 
 
 

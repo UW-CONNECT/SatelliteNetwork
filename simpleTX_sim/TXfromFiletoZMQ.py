@@ -89,7 +89,7 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
             '',
         )
         self.uhd_usrp_sink_0.set_center_freq(tx_freq, 0)
-        self.uhd_usrp_sink_0.set_normalized_gain(.7, 0)
+        self.uhd_usrp_sink_0.set_gain(41, 0)
         self.uhd_usrp_sink_0.set_antenna('TX/RX', 0)
         self.uhd_usrp_sink_0.set_bandwidth(samp_rate, 0)
         self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
@@ -111,7 +111,7 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
         self.qtgui_sink_x_0.enable_rf_freq(False)
 
         self.top_grid_layout.addWidget(self._qtgui_sink_x_0_win)
-        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\experiment_data\\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100\\trial1', True, 0, 0)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\experiment_data\\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100CR_0_Tx41\\trial1', False, 0, 0)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
 
 

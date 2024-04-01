@@ -44,6 +44,23 @@ blocks:
     coordinate: [248, 24.0]
     rotation: 0
     state: enabled
+- name: variable_low_pass_filter_taps_0
+  id: variable_low_pass_filter_taps
+  parameters:
+    beta: '6.76'
+    comment: ''
+    cutoff_freq: samp_rate/4
+    gain: '1.0'
+    samp_rate: samp_rate
+    width: samp_rate/8
+    win: firdes.WIN_HAMMING
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [369, 56]
+    rotation: 0
+    state: true
 - name: blocks_file_source_0
   id: blocks_file_source
   parameters:
@@ -51,7 +68,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\snr_xlater_filter\snr_0dB_SF7
+    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\snr_xlater_filter\snr_50dB_SF7
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -63,7 +80,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [21, 97]
+    coordinate: [32, 166]
     rotation: 0
     state: enabled
 - name: blocks_throttle_0
@@ -82,9 +99,29 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [211, 192]
+    coordinate: [215, 169]
     rotation: 0
     state: enabled
+- name: freq_xlating_fir_filter_xxx_0
+  id: freq_xlating_fir_filter_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    center_freq: '0'
+    comment: ''
+    decim: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    taps: variable_low_pass_filter_taps_0
+    type: ccc
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [358, 234]
+    rotation: 0
+    state: disabled
 - name: qtgui_sink_x_0
   id: qtgui_sink_x
   parameters:
@@ -136,8 +173,11 @@ blocks:
 
 connections:
 - [blocks_file_source_0, '0', blocks_throttle_0, '0']
+- [blocks_throttle_0, '0', freq_xlating_fir_filter_xxx_0, '0']
 - [blocks_throttle_0, '0', qtgui_sink_x_0, '0']
 - [blocks_throttle_0, '0', zeromq_pub_sink_0, '0']
+- [freq_xlating_fir_filter_xxx_0, '0', qtgui_sink_x_0, '0']
+- [freq_xlating_fir_filter_xxx_0, '0', zeromq_pub_sink_0, '0']
 
 metadata:
   file_format: 1

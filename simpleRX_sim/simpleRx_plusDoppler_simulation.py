@@ -27,7 +27,6 @@ import sip
 from gnuradio import blocks
 import pmt
 from gnuradio import channels
-from gnuradio import filter
 from gnuradio import gr
 import sys
 import signal
@@ -98,7 +97,6 @@ class simpleRx_plusDoppler_simulation(gr.top_block, Qt.QWidget):
         self.qtgui_sink_x_0.enable_rf_freq(False)
 
         self.top_grid_layout.addWidget(self._qtgui_sink_x_0_win)
-        self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(1, variable_low_pass_filter_taps_0, 0, samp_rate)
         self.channels_channel_model_0 = channels.channel_model(
             noise_voltage=0.025,
             frequency_offset=0.0,
@@ -108,11 +106,13 @@ class simpleRx_plusDoppler_simulation(gr.top_block, Qt.QWidget):
             block_tags=False)
         self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         self.blocks_multiply_xx_0 = blocks.multiply_vcc(1)
-        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_cc(.5)
-        self.blocks_file_source_1 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\experiment_data\\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100\\trial1', False, 0, 0)
+        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_cc(.008)
+        self.blocks_file_source_1 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\experiment_data\\SF_7N_128BW_20000FS_200000NPKTS_100PLEN_10CR_3\\trial1', False, 0, 0)
         self.blocks_file_source_1.set_begin_tag(pmt.PMT_NIL)
-        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\doppler_simulation_files\\GNURADIO_linear_8k_sep', True, 0, 0)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\SatelliteNetwork-main\\simpleTX_sim\\doppler_sim_scripts\\GNURADIO_linear_apogee', True, 0, 0)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\Standard_LoRa\\sf7_with_doppler', False)
+        self.blocks_file_sink_0.set_unbuffered(False)
 
 
 
@@ -124,9 +124,9 @@ class simpleRx_plusDoppler_simulation(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_multiply_xx_0, 0))
         self.connect((self.blocks_multiply_xx_0, 0), (self.channels_channel_model_0, 0))
         self.connect((self.blocks_throttle_0, 0), (self.blocks_multiply_xx_0, 1))
-        self.connect((self.channels_channel_model_0, 0), (self.freq_xlating_fir_filter_xxx_0, 0))
-        self.connect((self.freq_xlating_fir_filter_xxx_0, 0), (self.qtgui_sink_x_0, 0))
-        self.connect((self.freq_xlating_fir_filter_xxx_0, 0), (self.zeromq_pub_sink_0, 0))
+        self.connect((self.channels_channel_model_0, 0), (self.blocks_file_sink_0, 0))
+        self.connect((self.channels_channel_model_0, 0), (self.qtgui_sink_x_0, 0))
+        self.connect((self.channels_channel_model_0, 0), (self.zeromq_pub_sink_0, 0))
 
 
     def closeEvent(self, event):
@@ -147,7 +147,6 @@ class simpleRx_plusDoppler_simulation(gr.top_block, Qt.QWidget):
 
     def set_variable_low_pass_filter_taps_0(self, variable_low_pass_filter_taps_0):
         self.variable_low_pass_filter_taps_0 = variable_low_pass_filter_taps_0
-        self.freq_xlating_fir_filter_xxx_0.set_taps(self.variable_low_pass_filter_taps_0)
 
 
 

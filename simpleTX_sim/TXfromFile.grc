@@ -63,19 +63,19 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100\trial1
+    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100CR_0_Tx41\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
     offset: '0'
-    repeat: 'True'
+    repeat: 'False'
     type: complex
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [74, 141]
+    coordinate: [74, 140]
     rotation: 0
     state: true
 - name: qtgui_sink_x_0
@@ -104,7 +104,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [579, 59]
+    coordinate: [466, 56]
     rotation: 0
     state: true
 - name: uhd_usrp_sink_0
@@ -220,7 +220,7 @@ blocks:
     comment: ''
     dev_addr: '""'
     dev_args: '""'
-    gain0: '.7'
+    gain0: '41'
     gain1: '0'
     gain10: '0'
     gain11: '0'
@@ -320,7 +320,7 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     nchan: '1'
-    norm_gain0: 'True'
+    norm_gain0: 'False'
     norm_gain1: 'False'
     norm_gain10: 'False'
     norm_gain11: 'False'
@@ -381,7 +381,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [575, 170]
+    coordinate: [454, 183]
     rotation: 0
     state: enabled
 

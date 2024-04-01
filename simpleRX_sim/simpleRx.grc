@@ -52,7 +52,7 @@ blocks:
     alias: ''
     append: 'False'
     comment: ''
-    file: Z:\schellberg\indoor_exp_feb_2024\experiment_data\snr_xlater_filter\snr_2ndfloor_SF7
+    file: Z:\schellberg\indoor_exp_feb_2024\experiment_data\second_floor_raw_data\tx50dB_SF7
     type: complex
     unbuffered: 'False'
     vlen: '1'

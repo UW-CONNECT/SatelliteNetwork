@@ -20,22 +20,25 @@ UPSAMP = 10;
 #symbols =  range(1,50)
 #symbols = random.sample(range(1, N), 1000)
 
-fileout_name = "test_bw_change_tmp"
+fileout_name = "test_hamming_encode"
 
 symbols = []
 #for ss in range(0,1000):
 #    symbols.append(random.randint(1,N-1))
-#symbols = np.ones(100)*5
-symbols = [1]
+# symbols = np.ones(100)*5
+symbols = [5]
 
 #preamble = [0,0,0,0,0,0,0,0]
 #end_delimeter = [0,0,0,0,0,0,0,0] 
 #preamble = [1, 0,0,1,1,0,0,1]
-preamble = [1,1]
+preamble = [1]
 #preamble = [1,1,1,1]
 #end_delimeter = [1,0,5,0,0,10,1,1] 
 end_delimeter = [3,3,3,3] 
-css_modulator = CssMod(N, UPSAMP, preamble, end_delimeter) 
+CR = 3  # CR=0 means no hamming codes 
+BW = 20000
+FS = 200000
+css_modulator = CssMod(N, SF, BW, FS, preamble, end_delimeter, CR) 
 output = css_modulator.symbol2packet(symbols)
 
 bin_dat = np.float32(css_modulator.ang2bin(output))

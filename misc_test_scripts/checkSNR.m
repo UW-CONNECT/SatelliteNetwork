@@ -4,8 +4,9 @@ addpath('C:\Users\schellberg\Documents\schellberg\tutorials\USRP\LoRa_Learn_Simp
 % file_dir = 'single10_SF9'
 %file_dir = '../../simulated_data_SNR/sf7_noDop_SNR1-5hundredth_4dB';
 file_dir = '../../experiment_data/snr_xlater_filter/snr_2ndfloor_SF7';
+file_dir = 'C:\Users\schellberg\Downloads\OneDrive_1_3-15-2024/rx_BPF_noTx';
 x = load_file(file_dir,1,0);
-st_dx = 50000;
+st_dx = 200000;
 end_dx = st_dx+ 300000;
 % end_dx= 13635600;
 x = x(st_dx:end_dx);

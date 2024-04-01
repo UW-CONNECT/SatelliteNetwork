@@ -27,7 +27,7 @@ options:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [9, 8]
+    coordinate: [-2, 10]
     rotation: 0
     state: enabled
 
@@ -68,7 +68,7 @@ blocks:
     alias: ''
     append: 'False'
     comment: ''
-    file: Z:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100\SNR
+    file: C:\Users\schellberg\Documents\schellberg\Standard_LoRa\sf7_with_doppler
     type: complex
     unbuffered: 'False'
     vlen: '1'
@@ -76,9 +76,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [864, 480.0]
+    coordinate: [856, 240]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: blocks_file_source_0
   id: blocks_file_source
   parameters:
@@ -86,7 +86,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\doppler_simulation_files\GNURADIO_linear_8k_sep
+    file: J:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleTX_sim\doppler_sim_scripts\GNURADIO_linear_apogee
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -108,7 +108,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100\trial1
+    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_20000FS_200000NPKTS_100PLEN_10CR_3\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -120,16 +120,16 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [24, 128]
+    coordinate: [21, 99]
     rotation: 0
-    state: true
+    state: enabled
 - name: blocks_multiply_const_vxx_0
   id: blocks_multiply_const_vxx
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    const: '.5'
+    const: '.008'
     maxoutbuf: '0'
     minoutbuf: '0'
     type: complex
@@ -138,9 +138,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [243, 204]
+    coordinate: [206, 203]
     rotation: 0
-    state: true
+    state: enabled
 - name: blocks_multiply_xx_0
   id: blocks_multiply_xx
   parameters:
@@ -156,7 +156,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [447, 347]
+    coordinate: [328, 276]
     rotation: 0
     state: enabled
 - name: blocks_throttle_0
@@ -215,9 +215,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [407, 31]
+    coordinate: [374, 58]
     rotation: 0
-    state: true
+    state: enabled
 - name: freq_xlating_fir_filter_xxx_0
   id: freq_xlating_fir_filter_xxx
   parameters:
@@ -235,9 +235,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [657, 143]
+    coordinate: [673, 190]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: low_pass_filter_0
   id: low_pass_filter
   parameters:
@@ -259,7 +259,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [617, 245]
+    coordinate: [640, 317]
     rotation: 0
     state: disabled
 - name: qtgui_sink_x_0
@@ -314,14 +314,16 @@ blocks:
 connections:
 - [blocks_file_source_0, '0', blocks_throttle_0, '0']
 - [blocks_file_source_1, '0', blocks_multiply_const_vxx_0, '0']
-- [blocks_file_source_1, '0', blocks_throttle_1, '0']
 - [blocks_multiply_const_vxx_0, '0', blocks_multiply_xx_0, '0']
 - [blocks_multiply_xx_0, '0', channels_channel_model_0, '0']
 - [blocks_throttle_0, '0', blocks_multiply_xx_0, '1']
 - [blocks_throttle_1, '0', qtgui_sink_x_0, '0']
 - [blocks_throttle_1, '0', zeromq_pub_sink_0, '0']
+- [channels_channel_model_0, '0', blocks_file_sink_0, '0']
 - [channels_channel_model_0, '0', freq_xlating_fir_filter_xxx_0, '0']
 - [channels_channel_model_0, '0', low_pass_filter_0, '0']
+- [channels_channel_model_0, '0', qtgui_sink_x_0, '0']
+- [channels_channel_model_0, '0', zeromq_pub_sink_0, '0']
 - [freq_xlating_fir_filter_xxx_0, '0', qtgui_sink_x_0, '0']
 - [freq_xlating_fir_filter_xxx_0, '0', zeromq_pub_sink_0, '0']
 - [low_pass_filter_0, '0', qtgui_sink_x_0, '0']
