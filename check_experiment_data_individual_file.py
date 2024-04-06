@@ -30,7 +30,8 @@ expected_pkt_cnt = 10 # this should be saved in our ground truth file...
 # test_list = ['SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100_0dBattn']
 # test_list = ['SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100_indoor7pwr']
 # test_list = ['SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100']
-test_list = ['SF_7N_128BW_20000FS_200000NPKTS_100PLEN_10CR_3']
+# test_list = ['SF_7N_128BW_20000FS_200000NPKTS_100PLEN_10CR_3']
+test_list = ['SF_7N_128BW_40000FS_200000NPKTS_100PLEN_100CR_0']
 # test_list = ['SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100_doppler_apogee_simulation']
 output_file_cnt = 0
 SNR_dx = []
@@ -55,10 +56,11 @@ for exp_folder in test_list:
                 SNR_dx.append(PKT_SNR)
     SF_pkt_x.append(sf)
     PKT_CNT_Y.append(output_file_cnt) 
-        
+ 
+print('Packets Received:' ,PKT_CNT_Y)
 # print(SNR_dx.shape)
 nandx = np.argwhere(np.isnan(SNR_dx))
-if len(nandx) > 0:
+if len(nandx) > 1:
     print(nandx)
     del SNR_dx[nandx]
     del SER_Y[nandx]

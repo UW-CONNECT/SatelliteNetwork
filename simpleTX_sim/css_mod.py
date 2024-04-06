@@ -52,7 +52,10 @@ class CssMod:
        
         #pkt = self.sym_to_data_ang(np.concatenate((self.PREAMBLE , [pkt_length_2], [pkt_length_1], symbols , self.END_DELIMETER)))
         
-        payload = np.concatenate((self.PREAMBLE , [pkt_length_2], [pkt_length_1], symbols , self.END_DELIMETER)) 
+        # payload = np.concatenate((self.PREAMBLE , [pkt_length_2], [pkt_length_1], symbols , self.END_DELIMETER))
+        
+        sync_word = np.conjugate(self.sym_2_css([0, 0], self.N, self.SF, self.BW, self.FS))
+        # payload = np.concatenate((self.PREAMBLE , sync_word, [pkt_length_2], [pkt_length_1], symbols , self.END_DELIMETER))        
        
         # if self.CR >= 1: 
         
@@ -62,7 +65,13 @@ class CssMod:
         # payload = self.decode(payload)
         
         # print(payload)
-        pkt = self.sym_2_css(payload,  self.N, self.SF, self.BW, self.FS)
+        pkt = np.concatenate(( self.sym_2_css(self.PREAMBLE,  self.N, self.SF, self.BW, self.FS), sync_word, self.sym_2_css(np.concatenate(([pkt_length_2], [pkt_length_1], symbols , self.END_DELIMETER)),  self.N, self.SF, self.BW, self.FS)))
+        
+        # plt.figure(1)
+        # plt.specgram(pkt)
+        # plt.show()
+        
+        
         # print("pkt shape",pkt.shape)
         return pkt 
         

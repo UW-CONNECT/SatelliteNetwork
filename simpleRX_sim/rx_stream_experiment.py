@@ -26,7 +26,7 @@ from matplotlib import pyplot as plt
 #exp_root_folder = 'ber_desktop_testing'
 exp_root_folder = '../../experiment_data'
 
-exp_folder = 'SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100CR_0_Tx41'
+exp_folder = 'SF_7N_128BW_40000FS_200000NPKTS_100PLEN_100CR_0'
 
 trial_name = "trial1"
 #### 
@@ -38,7 +38,7 @@ with open(gnd_truth_data,'rb') as f:
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
 RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
-#RAW_FS = 500000           # value should be kept <= expected length, so that we don't miss empty space
+# RAW_FS = 1000000           # value should be kept <= expected length, so that we don't miss empty space
 # RAW_FS=1250000
 LORA_CHANNELS = [1]  # channels to process
 
@@ -53,7 +53,12 @@ OVERLAP = 0
 #print(SF, N, UPSAMP)
 #PREAMBLE_SZ = int(len(preamble)/2)*N*UPSAMP
 #PREAMBLE_SZ = 3*N*UPSAMP
+FS = 200000
+# UPSAMP = int(RAW_FS/BW)
+UPSAMP = int(FS/BW)
 PREAMBLE_SZ = 1*N*UPSAMP
+# PREAMBLE_SZ = 1*N*(RAW_FS/BW)
+# PREAMBLE_SZ = int(1*N*(RAW_FS/BW))
 END_DELIMITER = end_delimeter
 
 # Threshold envelope; at what power level do we expect to see a packet arrive? 
@@ -71,6 +76,7 @@ FS = UPSAMP*BW
 # print("Sampling frequency:", FS)
 #DB_THRESH = -7
 DB_THRESH = -11
+# print("Bandwidth:",BW)
 ##########################################################################
 
 def spawn_a_worker(my_channel, input_queue, output_queue):

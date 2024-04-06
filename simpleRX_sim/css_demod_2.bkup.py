@@ -10,7 +10,6 @@ import pickle
 import scipy.io
 import scipy.signal
 from Hamming import Hamming
-from demod_funcs import * # all our functions for demodulating and packet detection 
 
 class CssDemod():
     def __init__(self, N, UPSAMP,PREAMBLE_SIZE,END_DELIMETER, 
@@ -183,7 +182,7 @@ class CssDemod():
                     self.PREAMBLE_DEMOD = False
                     #print("Cumulative doppler across this packet", self.doppler_cum )
                     # self.doppler_cum = 0 # no reason to propagate this if the duty cycle is too long                 
-            elif ((len(self.PREV_QUEUE)) >  3*(len(self.REF_PREAMBLE)+self.WINDOW_SIZE*3+  1001)):  # ((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts
+            elif ((len(self.PREV_QUEUE)) >  1*(len(self.REF_PREAMBLE)+self.WINDOW_SIZE*3+  1001)):  # ((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts
                 # if :
                     # print("Looping.")
                     # break;
@@ -236,31 +235,23 @@ class CssDemod():
                     #print("Demod preamble within queue")
                     stat = self.demod_preamble()
                     if stat == 1: 
-                        # pkt detection may be off by a few points 
-                        # for n in np.arange(-10,10):                    
-                    
                         self.PACKET_DETECTED = False
                         self.PREV_QUEUE = self.PREV_QUEUE[1:] # this prevents it from stalling in a loop
                         # self.doppler_cum = 0
                 else:                   
                     # self.TMP_QUEUE = self.PREV_QUEUE[len(self.PREV_QUEUE) - (len(self.REF_PREAMBLE)*4 + self.WINDOW_SIZE*2):]   #todo optimize this. this slows down our code
-                    # self.TMP_QUEUE = self.PREV_QUEUE
-                    # self.PREV_QUEUE = []
-                    # pass
-                    break;
+                    self.TMP_QUEUE = self.PREV_QUEUE
+                    self.PREV_QUEUE = []
                 # else:
                     # print("Not long enough.")
             else:
-                print("Prev queue not big enough for pkt detection.")
                 break
         # if (len(self.TMP_QUEUE)) > 0:
             # self.LEFTOVER = self.TMP_QUEUE
             # self.TMP_QUEUE = []
         # else: 
-            # self.LEFTOVER = self.PREV_QUEUE 
-        
+            # self.LEFTOVER = self.PREV_QUEUE     
         self.LEFTOVER = self.PREV_QUEUE
-        print("LEftover len:", len(self.LEFTOVER))
         self.PREV_QUEUE = []
     
     def demod_preamble(self):
@@ -298,14 +289,14 @@ class CssDemod():
         # plt.title('sync check')
         # plt.show()
         
-        print('Doppler preamble Frequency shift,', freq_shift)
+        # print('Doppler preamble Frequency shift,', freq_shift)
         # check to make sure we can demodulate the preamble. If not, something went wrong with our sync and we need to try another pt 
         ts = np.linspace(0, self.WINDOW_SIZE/self.FS, self.WINDOW_SIZE)
         for symdx in range(0,7):
             # print(self.symbol_demod_sig(self.PREV_QUEUE[self.WINDOW_SIZE*(symdx):self.WINDOW_SIZE*(symdx+1)]))
             sym_win = self.PREV_QUEUE[self.WINDOW_SIZE*(symdx):self.WINDOW_SIZE*(symdx+1)] * np.exp(1j * 2 * math.pi * freq_shift * ts)
             if (self.symbol_demod_sig(sym_win) != 0):
-                print("Sync or doppler correction is incorrect.",self.symbol_demod_sig(sym_win))
+                # print("Sync or doppler correction is incorrect.",self.symbol_demod_sig(sym_win))
                 return 1
         
         
@@ -608,18 +599,14 @@ class CssDemod():
             # ind = (ind-(1*win_size)-off) + peakdx -2 #+ self.WINDOW_SIZE # NEEDS TO BE REMOVED< ignore sync word
             ind = ind 
             # out_preamb.append(ind) 
-            # nshifts = 1000
-            # shifts = np.arange(-nshifts, nshifts)
             nshifts = 1000
-            shifts = np.arange(0, nshifts)
-
+            shifts = np.arange(-nshifts, nshifts)
             # shifts = [0]
             # shifts = [0]
             max_shift_arr = []
             # print("check shifts")
             # if (((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts < len(Rx_Buffer) and (ind- ((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2  +  nshifts) > 0):         
-            # if (True):
-            if (((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts < len(Rx_Buffer) ):
+            if (True):
                 for shift in shifts:
                     
                     # # do sync word detection here
@@ -692,11 +679,6 @@ class CssDemod():
                 # plt.show()
                 print("Not enough points for packet detection ... ")
             
-        # Pream_ind = []
-        # for p in out_preamb:
-            # for shift in np.arange(-100,100):
-                # Pream_ind.append(p + shift) 
-        
         Pream_ind = out_preamb        
         
         # print('Num preamble indices total:', len(Pream_ind))

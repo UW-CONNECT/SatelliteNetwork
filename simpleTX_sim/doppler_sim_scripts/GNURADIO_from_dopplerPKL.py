@@ -30,14 +30,16 @@ print(len(doppler))
 # mid = int(len(doppler)/2) - 300
 mid = 42300
 nsamps = 100 * 60 * 1
-doppler = doppler[mid-nsamps:mid+nsamps]
+# doppler = doppler[mid-nsamps:mid+nsamps]
+# doppler = np.ones(8000)*8000
 
 # add place for upsamp factor 2k = FS/FsDOp
 
 #doppler = pchip_interpolate(range(0,(int(len(doppler)/FS_dop * FS)), 2000),doppler,range(0,(int(len(doppler)/FS_dop * FS)))) 
-#doporig = doppler
-#doppler = doppler[:int(len(doppler)/4)]
-#doppler = 8000 - np.arange(0,len(doporig))*16000/len(doporig)  # this works
+doporig = doppler
+doppler = doppler[:int(len(doppler)/4)]
+doporig = np.ones(3000)
+doppler = 8000 - np.arange(0,len(doporig))*16000/len(doporig)  # this works
 
 t1 = np.linspace(0,len(doppler), len(doppler))
 t2 = np.linspace(0,len(doppler), int((len(doppler)*FS/FS_dop )/2))
@@ -81,6 +83,7 @@ plt.show()
 #nsp = 2**9*UPSAMP
 #nsp = 2000
 nsp = ddop
+print("Num samples:", nsp)
 t = np.arange(0, nsp) / FS
 # = np.linspace(0, (len(doppler)-1)/FS_dop, len(doppler))
 #t_end = 20*60
@@ -91,36 +94,44 @@ plt.figure(5)
 plt.plot(np.diff(doppler))
 plt.show()
 '''
-print(t[-1])
+# print(t[-1])
 #doppler = 8000
 
 
 output = []
 phi_end=0
-for dp in range(0,len(doppler)): 
-    samp_shift= np.exp(1j * (2 * math.pi * doppler[dp] * t + phi_end))
+# for dp in range(0,len(doppler)): 
+for dp in range(1,len(doppler)): 
+    # samp_shift= np.exp(1j * (2 * math.pi * doppler[dp] * t + phi_end))
+    k = (doppler[dp] - doppler[dp-1])/len(t)
+    samp_shift = np.exp(1j*(phi_end + 2*math.pi*(t*(doppler[dp-1] +0.5*k*t)) ))
     #samp_shift = samp_shift - phi_end
     #print(len(samp_shift))
     #print(len(samp_shift))
     output.extend(samp_shift)
     phi_end = np.angle(samp_shift[-1])
-    print(phi_end)
+    # print(phi_end)
 #output = output.flatten()
 print("OP len",len(output))
 #print(len(doppler),len(t), len(output))
 
-plt.figure(3)
-plt.plot(np.abs(output[:3000]))
-plt.show()
-plt.figure(2)
-plt.specgram(output)
-#plt.plot(np.angle(output))
-plt.show()
+# plt.figure(1)
+# plt.plot(output[:len(t)*2])
+# plt.show()
+
+# plt.figure(3)
+# plt.plot(np.abs(output[:3000]))
+# plt.show()
+# plt.figure(2)
+# plt.specgram(output)
+# # plt.plot(np.angle(output))
+# plt.show()
 #wsoutput = output[
-css_modulator = CssMod(N, SF, BW, FS, preamble, end_delimeter) 
+CR = 0
+css_modulator = CssMod(N, SF, BW, FS, preamble, end_delimeter, CR) 
 bin_dat = np.float32(css_modulator.ang2bin_nopad(output))
 bin_dat = bin_dat.tobytes()
 
-file = open("GNURADIO_linear_apogee", 'bw')
+file = open("doppler_8k_test", 'bw')
 file.write(bin_dat)
 file.close()

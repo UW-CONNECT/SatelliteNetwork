@@ -21,22 +21,28 @@ import pickle
 SF_list = [7]
 #SF = 9
 
-NUMPKTS = 10
+NUMPKTS = 100
 # BW = 20000 
 # BW_list = [5000, 10000, 20000, 50000]
-BW_list = [25000, 30000]
+# BW_list = [10000, 20000, 40000, 50000]
+BW_list = [40000]
+# print(len(BW_list))
 # BW = 125000 
 FS = 200000
+# FS = 1000000
 # FS = BW*10
 PAYLOAD_LEN = 100
 # CR_LIST = [0,1,2,3,4] 
-CR_LIST = [0,3] 
+# CR_LIST = [0,3] 
+CR_LIST = [0]
 
 symbols = []
 #for ss in range(0,1000):
 #    symbols.append(random.randint(1,N-1))
 
-
+# preamble = [0,0,0,0,0,0,0,0,0,0]
+preamble = [0,0,0,0,0,0,0,0]
+end_delimeter = [3,3,3,3] 
 for SF in SF_list:
     N = 2**SF
     for ss in range(0,PAYLOAD_LEN):
@@ -59,25 +65,7 @@ for SF in SF_list:
             Path('ground_truth/'+exp_root_folder+'/'+exp_folder+'/').mkdir(parents=True, exist_ok=True)
             fileout_name = exp_root_folder+'/'+exp_folder+'/'+trial_name
             gt_fileout_name = exp_root_folder+'/'+exp_folder+'/'+"ground_truth_out.pkl"
-            #gt_fileout_name = 'ground_truth/'+exp_root_folder+'/'+exp_folder+'/'+trial_name+'.pkl'
-            #symbols = []
-            #symbols = np.ones(PAYLOAD_LEN)*5
-
-            #symbols = []
-            #symbols = np.ones(PAYLOAD_LEN)*5
-
             
-            #symbols = np.ones(100)*5
-            #symbols = [1]
-
-            #preamble = [0,0,0,0,0,0,0,0]
-            #end_delimeter = [0,0,0,0,0,0,0,0] 
-            #preamble = [1, 0,0,1,1,0,0,1]
-            #preamble = [1,1]
-            preamble = [1,1,1]
-            #preamble = [1,1,1,1]
-            #end_delimeter = [1,0,5,0,0,10,1,1] 
-            end_delimeter = [3,3,3,3] 
             css_modulator = CssMod(N, SF, BW, FS, preamble, end_delimeter, CR) 
             output = css_modulator.symbol2packet(symbols)
 
@@ -88,17 +76,11 @@ for SF in SF_list:
 
 
             bsl = len(bin_dat)
-            #bin_dat = np.concatenate((bin_dat,bin_dat,bin_dat,bin_dat,bin_dat))
-
-            #print(bin_dat.shape)
-            #bin_dat = np.concatenate((np.zeros((bsl)), bin_dat))
-            #print(bin_dat.shape)
-            #print(len(bin_dat))
             buffer_dat = N*UPSAMP*5*32
             bin_dat = np.append(np.float32(np.zeros((buffer_dat))),bin_dat)
 
             bin_dat = np.tile(bin_dat, NUMPKTS)
-            #bin_dat = np.append(np.float32(np.zeros((bsl))),bin_dat)
+            bin_dat = np.append(bin_dat,np.float32(np.zeros((buffer_dat*8)))) # for simulation in GNURADIO
             bin_dat = bin_dat.tobytes()
             '''
             symbols = []
