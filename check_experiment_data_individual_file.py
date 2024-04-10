@@ -31,10 +31,11 @@ expected_pkt_cnt = 10 # this should be saved in our ground truth file...
 # test_list = ['SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100_indoor7pwr']
 # test_list = ['SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100']
 # test_list = ['SF_7N_128BW_20000FS_200000NPKTS_100PLEN_10CR_3']
-test_list = ['SF_7N_128BW_40000FS_200000NPKTS_100PLEN_100CR_0']
+test_list = ['SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100CR_0']
 # test_list = ['SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100_doppler_apogee_simulation']
 output_file_cnt = 0
 SNR_dx = []
+error_locs = []
 for exp_folder in test_list:
     sf=7
     experiment_base_folder = exp_root_folder + '/' + exp_folder + '/' + 'error_out' + '*' + '.pkl'
@@ -51,20 +52,33 @@ for exp_folder in test_list:
                 #print(sum(np.subtract(GND_TRUTH_PKT,OUTPUT_PKT)))
                 SF_x.append(sf)                
                 print(int(np.count_nonzero(abs(np.subtract(GND_TRUTH_PKT,OUTPUT_PKT))) ))
-                SER_Y.append(int(np.count_nonzero(abs(np.subtract(GND_TRUTH_PKT,OUTPUT_PKT))) )) 
+                n_errors = int(np.count_nonzero(abs(np.subtract(GND_TRUTH_PKT,OUTPUT_PKT))) ) 
+                if (n_errors > 0):
+                    # plt.figure(1)
+                    # plt.plot(GND_TRUTH_PKT)
+                    # plt.plot(OUTPUT_PKT)
+                    print("DX",np.argwhere(abs(np.subtract(GND_TRUTH_PKT,OUTPUT_PKT)) > 0))
+                    error_locs.extend(np.argwhere(abs(np.subtract(GND_TRUTH_PKT,OUTPUT_PKT)) > 0))
+                    plt.figure(2)
+                    plt.plot(abs(np.subtract(GND_TRUTH_PKT,OUTPUT_PKT)))
+                    plt.show()
+                SER_Y.append(n_errors) 
                 output_file_cnt += 1
                 SNR_dx.append(PKT_SNR)
     SF_pkt_x.append(sf)
     PKT_CNT_Y.append(output_file_cnt) 
- 
+
+# plt.figure(5)
+# plt.hist(error_locs)
+# plt.show()
 print('Packets Received:' ,PKT_CNT_Y)
 # print(SNR_dx.shape)
 nandx = np.argwhere(np.isnan(SNR_dx))
-if len(nandx) > 1:
-    print(nandx)
-    del SNR_dx[nandx]
-    del SER_Y[nandx]
-    del SF_x[nandx]
+# if len(nandx) > 1:
+    # print(nandx)
+    # del SNR_dx[nandx]
+    # del SER_Y[nandx]
+    # del SF_x[nandx]
 
 
 plt.figure(1)

@@ -21,11 +21,11 @@ import pickle
 SF_list = [7]
 #SF = 9
 
-NUMPKTS = 100
+NUMPKTS = 10
 # BW = 20000 
 # BW_list = [5000, 10000, 20000, 50000]
 # BW_list = [10000, 20000, 40000, 50000]
-BW_list = [40000]
+BW_list = [5000]
 # print(len(BW_list))
 # BW = 125000 
 FS = 200000
@@ -34,7 +34,7 @@ FS = 200000
 PAYLOAD_LEN = 100
 # CR_LIST = [0,1,2,3,4] 
 # CR_LIST = [0,3] 
-CR_LIST = [0]
+CR_LIST = [0,3]
 
 symbols = []
 #for ss in range(0,1000):

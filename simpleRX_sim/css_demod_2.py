@@ -1,4 +1,3 @@
-
 from matplotlib import pyplot as plt
 import time
 import math
@@ -554,11 +553,11 @@ class CssDemod():
                 temp_wind_fft = abs(
                     np.fft.fft(Rx_Buffer[(i * upsampling_factor * N) + offset:
                                          ((i + 1) * upsampling_factor * N) + offset] * DC_upsamp, axis=0))
-                temp_wind_fft_idx = np.concatenate(
-                    [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
+                # temp_wind_fft_idx = np.concatenate(
+                    # [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
                 # temp_wind_fft_idx = np.arange(0, upsampling_factor * N)
                 
-                temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
+                # temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
                 
                 b = np.argmax(temp_wind_fft)
                 if len(ind_buff) >= num_preamble:
@@ -590,9 +589,11 @@ class CssDemod():
         if count >= (loop * 0.70):
             Preamble_ind = np.array([], int)
             return Preamble_ind
-        
+                
         # # Synchronization
         Pream_ind.sort()
+        
+        print("Coarse preamb lin:", len(Pream_ind))
         
         # Rx_Buffer = Rx_Buffer_bkup
         # Pream_ind = Pream_ind + (((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2) 
@@ -610,16 +611,17 @@ class CssDemod():
             # out_preamb.append(ind) 
             # nshifts = 1000
             # shifts = np.arange(-nshifts, nshifts)
-            nshifts = 1000
+            nshifts = self.N*self.UPSAMP
             shifts = np.arange(0, nshifts)
 
             # shifts = [0]
             # shifts = [0]
             max_shift_arr = []
+            max_bin_arr = []
             # print("check shifts")
             # if (((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts < len(Rx_Buffer) and (ind- ((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2  +  nshifts) > 0):         
             # if (True):
-            if (((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts < len(Rx_Buffer) ):
+            if (((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts < len(Rx_Buffer)  and ind >0):
                 for shift in shifts:
                     
                     # # do sync word detection here
@@ -652,17 +654,32 @@ class CssDemod():
                     temp_wind_fft = abs(
                             np.fft.fft(win1 * win2, axis=0))
                     
-                    # plt.figure(4)
-                    # plt.plot(temp_wind_fft)
-                    # plt.show()
-                    temp_wind_fft_idx = np.concatenate(
-                        [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
-                    temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
+                    
+                    # temp_wind_fft_idx = np.concatenate(
+                        # [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
+                    # temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
                     b = np.argmax(temp_wind_fft)                           
                     
                     # b = b + 10 
                     #print("b", b, temp_wind_fft[b])
-                    max_shift_arr.append(temp_wind_fft[b])    
+                    # max_shift_arr.append(temp_wind_fft[b])    
+                    # # midp = int(len(self.REF_PREAMBLE)/2)
+                    # # win1 = Rx_Buffer[ind_win-len(self.REF_PREAMBLE):ind_win-midp]
+                    # # win2 = np.conjugate(Rx_Buffer[ind_win-midp:ind_win])
+                    
+                    # # temp_wind_fft = abs(
+                            # # np.fft.fft(win1 * win2, axis=0))
+                    # # temp_wind_fft_idx = np.concatenate(
+                        # # [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
+                    # # temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
+                    # # b = np.argmax(temp_wind_fft)  
+
+
+                    max_bin_arr.append(b)
+                    max_shift_arr.append(temp_wind_fft[b]) 
+                    
+                    # max_shift_arr.append(abs(np.correlate(win1,win2)))  
+                    
                     # if b == 0 : 
                         # print("b", b, temp_wind_fft[b])
                         # detected = True
@@ -684,6 +701,9 @@ class CssDemod():
                     # ind = ind
                     print("PACKET DETECTED!")
                     out_preamb.append(ind) 
+                    max_bin = max_bin_arr[np.argmax(max_shift_arr)]
+                    freq_shift = self.FS/2 / (self.N*self.UPSAMP) * max_bin 
+                    print("Est. freq shift: ", freq_shift)
                     break; # tentatively adding this, may want to remove 
             else: 
                 # plt.figure(1)

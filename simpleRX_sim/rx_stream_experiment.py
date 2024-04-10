@@ -26,7 +26,7 @@ from matplotlib import pyplot as plt
 #exp_root_folder = 'ber_desktop_testing'
 exp_root_folder = '../../experiment_data'
 
-exp_folder = 'SF_7N_128BW_40000FS_200000NPKTS_100PLEN_100CR_0'
+exp_folder = 'SF_7N_128BW_5000FS_200000NPKTS_10PLEN_100CR_0'
 
 trial_name = "trial1"
 #### 

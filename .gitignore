@@ -59,3 +59,4 @@ simpleTX_sim/test_bw_change_tmp
 simpleTX_sim/doppler_sim_scripts/GNURADIO_linear_apogee
 simpleTX_sim/test_hamming_encode
 simpleTX_sim/test_hamming_encode_ref
+simpleTX_sim/doppler_sim_scripts/doppler_8k_test
