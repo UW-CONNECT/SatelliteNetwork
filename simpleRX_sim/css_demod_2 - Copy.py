@@ -1,4 +1,3 @@
-
 from matplotlib import pyplot as plt
 import time
 import math
@@ -10,6 +9,7 @@ import pickle
 import scipy.io
 import scipy.signal
 from Hamming import Hamming
+from demod_funcs import * # all our functions for demodulating and packet detection 
 
 class CssDemod():
     def __init__(self, N, UPSAMP,PREAMBLE_SIZE,END_DELIMETER, 
@@ -132,14 +132,18 @@ class CssDemod():
         PQ_TMP = self.PREV_QUEUE
         YY = len(self.LEFTOVER)
         self.LEFTOVER = []
-        while (len(self.PREV_QUEUE) > self.WINDOW_SIZE): 
+        
+        queue_idx = 0 
+        # while (len(self.PREV_QUEUE) > self.WINDOW_SIZE): 
+        while (queue_idx > self.WINDOW_SIZE): 
         # while ((len(self.PREV_QUEUE) > len(self.REF_PREAMBLE)+4*self.WINDOW_SIZE) > self.WINDOW_SIZE): 
             #print(len(self.PREV_QUEUE))
             #print("PP:", self.PREAMBLE_DEMOD == False , len(self.PREV_QUEUE) > (len(self.REF_PREAMBLE) + self.WINDOW_SIZE*2))
             if (self.PREAMBLE_DEMOD == False and len(self.PREV_QUEUE) > (len(self.REF_PREAMBLE) + self.WINDOW_SIZE*2)and self.PACKET_DETECTED):
                 #print("Demod preamb at start of queue")
                 # self.demod_preamble()  
-                stat = self.demod_preamble()
+                # stat = self.demod_preamble()
+                stat = self.demod_preamble(self.PREV_QUEUE[queue_idx:])
                 if stat == 1: 
                     self.PACKET_DETECTED = False              
                     # self.doppler_cum = 0
@@ -182,7 +186,7 @@ class CssDemod():
                     self.PREAMBLE_DEMOD = False
                     #print("Cumulative doppler across this packet", self.doppler_cum )
                     # self.doppler_cum = 0 # no reason to propagate this if the duty cycle is too long                 
-            elif ((len(self.PREV_QUEUE)) >  1*(len(self.REF_PREAMBLE)+self.WINDOW_SIZE*3+  1001)):  # ((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts
+            elif ((len(self.PREV_QUEUE)) >  3*(len(self.REF_PREAMBLE)+self.WINDOW_SIZE*3+  1001)):  # ((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts
                 # if :
                     # print("Looping.")
                     # break;
@@ -235,25 +239,125 @@ class CssDemod():
                     #print("Demod preamble within queue")
                     stat = self.demod_preamble()
                     if stat == 1: 
+                        # pkt detection may be off by a few points 
+                        # for n in np.arange(-10,10):                    
+                    
                         self.PACKET_DETECTED = False
                         self.PREV_QUEUE = self.PREV_QUEUE[1:] # this prevents it from stalling in a loop
                         # self.doppler_cum = 0
                 else:                   
                     # self.TMP_QUEUE = self.PREV_QUEUE[len(self.PREV_QUEUE) - (len(self.REF_PREAMBLE)*4 + self.WINDOW_SIZE*2):]   #todo optimize this. this slows down our code
-                    self.TMP_QUEUE = self.PREV_QUEUE
-                    self.PREV_QUEUE = []
+                    # self.TMP_QUEUE = self.PREV_QUEUE
+                    # self.PREV_QUEUE = []
+                    # pass
+                    break;
                 # else:
                     # print("Not long enough.")
             else:
+                print("Prev queue not big enough for pkt detection.")
                 break
         # if (len(self.TMP_QUEUE)) > 0:
             # self.LEFTOVER = self.TMP_QUEUE
             # self.TMP_QUEUE = []
         # else: 
-            # self.LEFTOVER = self.PREV_QUEUE     
+            # self.LEFTOVER = self.PREV_QUEUE 
+        
         self.LEFTOVER = self.PREV_QUEUE
+        print("LEftover len:", len(self.LEFTOVER))
         self.PREV_QUEUE = []
-    
+        
+    def demod_preamble(self, queue):
+        '''
+        Get dopppler from the preamble, and decode packet length. 
+        '''            
+        self.END_COUNTER = 0       
+        # self.doppler_cum = 0 # reset the doppler shift for the entire packet (?)             
+        # Doppler correction for the whole packet   
+        tp = np.linspace(0, (len(self.REF_PREAMBLE)+2*self.WINDOW_SIZE)/self.FS, len(self.REF_PREAMBLE)+2*self.WINDOW_SIZE)
+        
+        
+        # # plt.figure(1)
+        # # plt.plot(self.PREV_QUEUE[:len(self.REF_PREAMBLE)])
+        # # plt.show()
+        # freq_shift = self.get_doppler_preamble(self.REF_PREAMBLE, self.PREV_QUEUE[:len(self.REF_PREAMBLE)],self.FD_MAX,self.FD_COARSE,tp)
+        preamb_with_sync = np.concatenate((self.REF_PREAMBLE, np.conjugate(self.sym_2_css([0,0], self.N, self.SF, self.BW, self.FS))))
+        preamb_candidate = queue[:len(self.REF_PREAMBLE)+self.WINDOW_SIZE*2]
+        freq_shift1 = self.get_doppler_preamble(preamb_with_sync, preamb_candidate,self.FD_MAX,self.FD_COARSE,tp)
+        # self.doppler_cum = self.doppler_cum + freq_shift1
+        # freq_shift = 0 #[remove this]
+        
+        # t = np.linspace(0, len(self.PREV_QUEUE)/self.FS, len(self.PREV_QUEUE))
+        preamb_candidate = preamb_candidate * np.exp(1j * 2 * math.pi * freq_shift1 * tp)
+        
+        # freq_shift = self.get_doppler_preamble(self.REF_PREAMBLE, self.PREV_QUEUE[:len(self.REF_PREAMBLE)],self.FD_COARSE+2*self.FD_FINE,self.FD_FINE,tp)        
+        # preamb_with_sync = np.concatenate((self.REF_PREAMBLE, np.conjugate(self.sym_2_css([0,0], self.N, self.SF, self.BW, self.FS))))
+        freq_shift2 = self.get_doppler_preamble(preamb_with_sync,preamb_candidate ,self.FD_COARSE+2*self.FD_FINE,self.FD_FINE,tp)        
+        
+        freq_shift = freq_shift1 + freq_shift2
+        
+        # plt.figure(7)
+        # plt.plot(self.PREV_QUEUE[:self.WINDOW_SIZE])
+        # plt.plot(self.sym_2_css([1], self.N, self.SF, self.BW, self.FS))
+        # plt.title('sync check')
+        # plt.show()
+        
+        print('Doppler preamble Frequency shift,', freq_shift)
+        # check to make sure we can demodulate the preamble. If not, something went wrong with our sync and we need to try another pt 
+        ts = np.linspace(0, self.WINDOW_SIZE/self.FS, self.WINDOW_SIZE)
+        for symdx in range(0,7):
+            # print(self.symbol_demod_sig(self.PREV_QUEUE[self.WINDOW_SIZE*(symdx):self.WINDOW_SIZE*(symdx+1)]))
+            sym_win = queue[self.WINDOW_SIZE*(symdx):self.WINDOW_SIZE*(symdx+1)] * np.exp(1j * 2 * math.pi * freq_shift * ts)
+            if (self.symbol_demod_sig(sym_win) != 0):
+                print("Sync or doppler correction is incorrect.",self.symbol_demod_sig(sym_win))
+                return 1
+        
+        
+        # freq_shift = 0 #[remove this]
+        t = ts = np.linspace(0, len( self.PREV_QUEUE)/self.FS, len( self.PREV_QUEUE))
+        queue = queue * np.exp(1j * 2 * math.pi * freq_shift * t)    
+        # print("PREAMB freq shift:" , freq_shift)
+        self.OUTPUT_PKT = []
+        self.doppler_cum = self.doppler_cum + freq_shift
+        
+        # self.PREV_QUEUE = self.PREV_QUEUE[len(self.REF_PREAMBLE):] 
+        queue = queue[2*self.WINDOW_SIZE+len(self.REF_PREAMBLE):]            
+        
+        # SNR Measurement after doppler correction (for filtering) 
+        self.noise_sig = scipy.signal.decimate(self.noise_sig, 10)
+        # noise_sig = self.noise_sig
+        SNR_win = self.WINDOW_SIZE 
+        noise_power = np.sqrt(np.mean(np.real(self.noise_sig)*np.real(self.noise_sig)+ np.imag(self.noise_sig)*np.imag(self.noise_sig)))**2 / (SNR_win*self.UPSAMP)
+        signal_sig = self.PREV_QUEUE[:SNR_win]
+        # signal_power = np.sqrt(np.mean((self.PREV_QUEUE[possible_idx[0]:(possible_idx[0]+self.WINDOW_SIZE)])**2))
+        signal_sig = scipy.signal.decimate(signal_sig, 10)
+        # print(len(signal_sig))
+        signal_power = np.sqrt(np.mean(np.real(signal_sig)*np.real(signal_sig)+np.imag(signal_sig)*np.imag(signal_sig)))**2 / (SNR_win*self.UPSAMP)
+                       
+        current_SNR = 20 * np.log10( (signal_power-noise_power) / noise_power) 
+        self.PKT_SNR=current_SNR
+        print("SNR For this packet: ", current_SNR)     
+        # print(colored(("SNR For this packet: ", current_SNR), 'green', 'on_red'))
+                
+        pkt_len_2 = self.symbol_demod()
+                       
+        pkt_len_1 = self.symbol_demod()
+                
+        #[TODO] : What if other candidate IDXs lie within this, and this sync is just a bit off? Need to not remove the pts then
+        self.PACKET_LEN =  pkt_len_2 + self.N*pkt_len_1
+        if (self.PACKET_LEN > 1000):
+            print(" ===== found pkt length too long ", self.PACKET_LEN)
+            self.PREAMBLE_DEMOD = False 
+            self.PACKET_DETECTED = False
+            '''
+            plt.figure(2)
+            plt.plot(self.PREV_QUEUE)
+            plt.show()     
+            '''
+        else: 
+            #print("Packet length: ", self.PACKET_LEN)
+            self.PACKETS_DECODED = 0      
+            self.PREAMBLE_DEMOD = True
+            
     def demod_preamble(self):
         '''
         Get dopppler from the preamble, and decode packet length. 
@@ -289,14 +393,14 @@ class CssDemod():
         # plt.title('sync check')
         # plt.show()
         
-        # print('Doppler preamble Frequency shift,', freq_shift)
+        print('Doppler preamble Frequency shift,', freq_shift)
         # check to make sure we can demodulate the preamble. If not, something went wrong with our sync and we need to try another pt 
         ts = np.linspace(0, self.WINDOW_SIZE/self.FS, self.WINDOW_SIZE)
         for symdx in range(0,7):
             # print(self.symbol_demod_sig(self.PREV_QUEUE[self.WINDOW_SIZE*(symdx):self.WINDOW_SIZE*(symdx+1)]))
             sym_win = self.PREV_QUEUE[self.WINDOW_SIZE*(symdx):self.WINDOW_SIZE*(symdx+1)] * np.exp(1j * 2 * math.pi * freq_shift * ts)
             if (self.symbol_demod_sig(sym_win) != 0):
-                # print("Sync or doppler correction is incorrect.",self.symbol_demod_sig(sym_win))
+                print("Sync or doppler correction is incorrect.",self.symbol_demod_sig(sym_win))
                 return 1
         
         
@@ -545,11 +649,11 @@ class CssDemod():
                 temp_wind_fft = abs(
                     np.fft.fft(Rx_Buffer[(i * upsampling_factor * N) + offset:
                                          ((i + 1) * upsampling_factor * N) + offset] * DC_upsamp, axis=0))
-                temp_wind_fft_idx = np.concatenate(
-                    [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
+                # temp_wind_fft_idx = np.concatenate(
+                    # [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
                 # temp_wind_fft_idx = np.arange(0, upsampling_factor * N)
                 
-                temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
+                # temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
                 
                 b = np.argmax(temp_wind_fft)
                 if len(ind_buff) >= num_preamble:
@@ -581,9 +685,11 @@ class CssDemod():
         if count >= (loop * 0.70):
             Preamble_ind = np.array([], int)
             return Preamble_ind
-        
+                
         # # Synchronization
         Pream_ind.sort()
+        
+        print("Coarse preamb lin:", len(Pream_ind))
         
         # Rx_Buffer = Rx_Buffer_bkup
         # Pream_ind = Pream_ind + (((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2) 
@@ -599,14 +705,19 @@ class CssDemod():
             # ind = (ind-(1*win_size)-off) + peakdx -2 #+ self.WINDOW_SIZE # NEEDS TO BE REMOVED< ignore sync word
             ind = ind 
             # out_preamb.append(ind) 
-            nshifts = 1000
-            shifts = np.arange(-nshifts, nshifts)
+            # nshifts = 1000
+            # shifts = np.arange(-nshifts, nshifts)
+            nshifts = self.N*self.UPSAMP
+            shifts = np.arange(0, nshifts)
+
             # shifts = [0]
             # shifts = [0]
             max_shift_arr = []
+            max_bin_arr = []
             # print("check shifts")
             # if (((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts < len(Rx_Buffer) and (ind- ((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2  +  nshifts) > 0):         
-            if (True):
+            # if (True):
+            if (((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts < len(Rx_Buffer)  and ind >0):
                 for shift in shifts:
                     
                     # # do sync word detection here
@@ -639,17 +750,32 @@ class CssDemod():
                     temp_wind_fft = abs(
                             np.fft.fft(win1 * win2, axis=0))
                     
-                    # plt.figure(4)
-                    # plt.plot(temp_wind_fft)
-                    # plt.show()
-                    temp_wind_fft_idx = np.concatenate(
-                        [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
-                    temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
+                    
+                    # temp_wind_fft_idx = np.concatenate(
+                        # [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
+                    # temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
                     b = np.argmax(temp_wind_fft)                           
                     
                     # b = b + 10 
                     #print("b", b, temp_wind_fft[b])
-                    max_shift_arr.append(temp_wind_fft[b])    
+                    # max_shift_arr.append(temp_wind_fft[b])    
+                    # # midp = int(len(self.REF_PREAMBLE)/2)
+                    # # win1 = Rx_Buffer[ind_win-len(self.REF_PREAMBLE):ind_win-midp]
+                    # # win2 = np.conjugate(Rx_Buffer[ind_win-midp:ind_win])
+                    
+                    # # temp_wind_fft = abs(
+                            # # np.fft.fft(win1 * win2, axis=0))
+                    # # temp_wind_fft_idx = np.concatenate(
+                        # # [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
+                    # # temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
+                    # # b = np.argmax(temp_wind_fft)  
+
+
+                    max_bin_arr.append(b)
+                    max_shift_arr.append(temp_wind_fft[b]) 
+                    
+                    # max_shift_arr.append(abs(np.correlate(win1,win2)))  
+                    
                     # if b == 0 : 
                         # print("b", b, temp_wind_fft[b])
                         # detected = True
@@ -671,7 +797,10 @@ class CssDemod():
                     # ind = ind
                     print("PACKET DETECTED!")
                     out_preamb.append(ind) 
-                    break; # tentatively adding this, may want to remove 
+                    max_bin = max_bin_arr[np.argmax(max_shift_arr)]
+                    freq_shift = self.FS/2 / (self.N*self.UPSAMP) * max_bin 
+                    print("Est. freq shift: ", freq_shift)
+                    # break; # tentatively adding this, may want to remove 
             else: 
                 # plt.figure(1)
                 # plt.plot(Rx_Buffer)
@@ -679,6 +808,11 @@ class CssDemod():
                 # plt.show()
                 print("Not enough points for packet detection ... ")
             
+        # Pream_ind = []
+        # for p in out_preamb:
+            # for shift in np.arange(-100,100):
+                # Pream_ind.append(p + shift) 
+        
         Pream_ind = out_preamb        
         
         # print('Num preamble indices total:', len(Pream_ind))

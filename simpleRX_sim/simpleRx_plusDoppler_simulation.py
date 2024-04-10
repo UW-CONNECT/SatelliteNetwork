@@ -107,14 +107,15 @@ class simpleRx_plusDoppler_simulation(gr.top_block, Qt.QWidget):
             taps=[1.0 + 1.0j],
             noise_seed=0,
             block_tags=False)
+        self.blocks_throttle_4 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_cc(.004)
-        self.blocks_file_source_1 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\experiment_data\\SF_7N_128BW_5000FS_200000NPKTS_10PLEN_100CR_0\\trial1', False, 0, 0)
+        self.blocks_file_source_1 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\experiment_data\\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100CR_0\\trial1', False, 0, 0)
         self.blocks_file_source_1.set_begin_tag(pmt.PMT_NIL)
         self.blocks_file_sink_1 = blocks.file_sink(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\Standard_LoRa\\sf7_with_doppler', False)
         self.blocks_file_sink_1.set_unbuffered(False)
         self.FrequencyShifter_0 = FrequencyShifter(
-            frequency=3000,
-            samp_rate=samp_rate,
+            frequency=10000,
+            samp_rate=0,
         )
 
 
@@ -124,7 +125,8 @@ class simpleRx_plusDoppler_simulation(gr.top_block, Qt.QWidget):
         ##################################################
         self.connect((self.FrequencyShifter_0, 0), (self.channels_channel_model_0, 0))
         self.connect((self.blocks_file_source_1, 0), (self.blocks_multiply_const_vxx_0, 0))
-        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.FrequencyShifter_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_throttle_4, 0))
+        self.connect((self.blocks_throttle_4, 0), (self.FrequencyShifter_0, 0))
         self.connect((self.channels_channel_model_0, 0), (self.blocks_file_sink_1, 0))
         self.connect((self.channels_channel_model_0, 0), (self.qtgui_sink_x_0, 0))
         self.connect((self.channels_channel_model_0, 0), (self.zeromq_pub_sink_0, 0))
@@ -140,7 +142,7 @@ class simpleRx_plusDoppler_simulation(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.FrequencyShifter_0.set_samp_rate(self.samp_rate)
+        self.blocks_throttle_4.set_sample_rate(self.samp_rate)
         self.qtgui_sink_x_0.set_frequency_range(0, self.samp_rate)
 
 

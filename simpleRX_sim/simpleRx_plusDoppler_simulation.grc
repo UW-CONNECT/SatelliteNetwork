@@ -50,15 +50,15 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    frequency: '3000'
+    frequency: '10000'
     maxoutbuf: '0'
     minoutbuf: '0'
-    samp_rate: samp_rate
+    samp_rate: '0'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [236, 161]
+    coordinate: [295, 177]
     rotation: 0
     state: true
 - name: analog_const_source_x_0
@@ -143,7 +143,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_5000FS_200000NPKTS_10PLEN_100CR_0\trial1
+    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100CR_0\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -217,7 +217,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [136, 264]
+    coordinate: [105, 296]
     rotation: 0
     state: enabled
 - name: blocks_multiply_xx_0
@@ -371,6 +371,25 @@ blocks:
     coordinate: [336, 333]
     rotation: 0
     state: disabled
+- name: blocks_throttle_4
+  id: blocks_throttle
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [274, 287]
+    rotation: 0
+    state: enabled
 - name: channels_channel_model_0
   id: channels_channel_model
   parameters:
@@ -486,16 +505,15 @@ blocks:
     state: enabled
 
 connections:
-- [FrequencyShifter_0, '0', blocks_throttle_3, '0']
 - [FrequencyShifter_0, '0', channels_channel_model_0, '0']
 - [blocks_file_source_0, '0', blocks_throttle_0, '0']
 - [blocks_file_source_1, '0', blocks_multiply_const_vxx_0, '0']
 - [blocks_file_source_2, '0', blocks_multiply_xx_1, '1']
 - [blocks_file_source_3, '0', blocks_multiply_xx_2, '1']
-- [blocks_multiply_const_vxx_0, '0', FrequencyShifter_0, '0']
 - [blocks_multiply_const_vxx_0, '0', blocks_multiply_xx_0, '0']
 - [blocks_multiply_const_vxx_0, '0', blocks_multiply_xx_1, '0']
 - [blocks_multiply_const_vxx_0, '0', blocks_multiply_xx_2, '0']
+- [blocks_multiply_const_vxx_0, '0', blocks_throttle_4, '0']
 - [blocks_multiply_xx_0, '0', channels_channel_model_0, '0']
 - [blocks_multiply_xx_1, '0', channels_channel_model_0, '0']
 - [blocks_multiply_xx_2, '0', blocks_throttle2_0, '0']
@@ -506,6 +524,7 @@ connections:
 - [blocks_throttle_1, '0', zeromq_pub_sink_0, '0']
 - [blocks_throttle_2, '0', channels_channel_model_0, '0']
 - [blocks_throttle_3, '0', channels_channel_model_0, '0']
+- [blocks_throttle_4, '0', FrequencyShifter_0, '0']
 - [channels_channel_model_0, '0', blocks_file_sink_0, '0']
 - [channels_channel_model_0, '0', blocks_file_sink_1, '0']
 - [channels_channel_model_0, '0', freq_xlating_fir_filter_xxx_0, '0']
