@@ -20,11 +20,6 @@ if __name__ == '__main__':
         except:
             print("Warning: failed to XInitThreads()")
 
-import os
-import sys
-sys.path.append(os.environ.get('GRC_HIER_PATH', os.path.expanduser('~/.grc_gnuradio')))
-
-from FrequencyShifter import FrequencyShifter  # grc-generated hier_block
 from PyQt5 import Qt
 from gnuradio import qtgui
 from gnuradio.filter import firdes
@@ -33,6 +28,7 @@ from gnuradio import blocks
 import pmt
 from gnuradio import channels
 from gnuradio import gr
+import sys
 import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
@@ -108,25 +104,20 @@ class simpleRx_plusDoppler_simulation(gr.top_block, Qt.QWidget):
             noise_seed=0,
             block_tags=False)
         self.blocks_throttle_4 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
-        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_cc(.004)
-        self.blocks_file_source_1 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\experiment_data\\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100CR_0\\trial1', False, 0, 0)
+        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_cc(1)
+        self.blocks_file_source_1 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\experiment_data\\SF_7N_128BW_2500FS_200000NPKTS_5PLEN_100CR_0\\trial1', False, 0, 0)
         self.blocks_file_source_1.set_begin_tag(pmt.PMT_NIL)
         self.blocks_file_sink_1 = blocks.file_sink(gr.sizeof_gr_complex*1, 'C:\\Users\\schellberg\\Documents\\schellberg\\Standard_LoRa\\sf7_with_doppler', False)
         self.blocks_file_sink_1.set_unbuffered(False)
-        self.FrequencyShifter_0 = FrequencyShifter(
-            frequency=10000,
-            samp_rate=0,
-        )
 
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.FrequencyShifter_0, 0), (self.channels_channel_model_0, 0))
         self.connect((self.blocks_file_source_1, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_throttle_4, 0))
-        self.connect((self.blocks_throttle_4, 0), (self.FrequencyShifter_0, 0))
+        self.connect((self.blocks_throttle_4, 0), (self.channels_channel_model_0, 0))
         self.connect((self.channels_channel_model_0, 0), (self.blocks_file_sink_1, 0))
         self.connect((self.channels_channel_model_0, 0), (self.qtgui_sink_x_0, 0))
         self.connect((self.channels_channel_model_0, 0), (self.zeromq_pub_sink_0, 0))

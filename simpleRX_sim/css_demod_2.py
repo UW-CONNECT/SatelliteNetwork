@@ -118,7 +118,7 @@ class CssDemod():
         if (len(self.noise_sig) == 0):
             self.noise_sig =  queue[:self.SNR_win]     # prevent nan SNR measurement
         # print("Decoded leftlen:", len(self.LEFTOVER))
-        print("Starting demod on a new queue", self.QUEUE_CNT)
+        print("Starting demod on a new queue", self.QUEUE_CNT, "N decoded:", self.PACKETS_DECODED)
         self.QUEUE_CNT = self.QUEUE_CNT + 1
 
         freq_shift = self.doppler_cum
@@ -128,10 +128,11 @@ class CssDemod():
         leftover_phase = 0
         if (len(self.LEFTOVER) > 0):
             leftover_phase = np.angle(self.LEFTOVER[-1])
-        queue = queue * np.exp(1j * ((2 * math.pi * freq_shift * self.t)+ leftover_phase - np.angle(queue[0])))   #tentatively adding leftover phase for random errors 
+        # queue = queue * np.exp(1j * ((2 * math.pi * freq_shift * self.t)+ leftover_phase - np.angle(queue[0])))   #tentatively adding leftover phase for random errors 
                 
         queue = np.concatenate((self.LEFTOVER, queue))
         self.LEFTOVER = [] # some symbols or preambles carry over into the next item 
+        # print("Leftover phase", leftover_phase)
         
         queue_idx = 0 
         # while (len(self.PREV_QUEUE) > self.WINDOW_SIZE): 
@@ -149,21 +150,22 @@ class CssDemod():
                     if (self.PREAMBLE_DEMOD):
                         self.END_COUNTER = 0 
                         self.PACKETS_DECODED = 0 
-                        self.doppler_cum = self.doppler_cum + freq_shift
+                        # self.doppler_cum = self.doppler_cum + freq_shift
+                        self.doppler_cum = freq_shift
                         
                         # calculate SNR if packet detected 
                         # ds_factor = int(self.WINDOW_SIZE / (self.N * 10))  
-                        ds_factor = 10
+                        ds_factor = self.UPSAMP
                         noise_sig = scipy.signal.decimate(self.noise_sig, ds_factor)
                         # noise_sig = self.noise_sig
                         SNR_win = self.SNR_win
                         signal_sig = queue[possible_idx:possible_idx+SNR_win]
                         signal_sig = scipy.signal.decimate(signal_sig, ds_factor)                        
                         self.PKT_SNR = self.calc_SNR(signal_sig, noise_sig)
-                        print("SNR For this packet:",self.PKT_SNR)
+                        print("SNR For this packet:",self.PKT_SNR, "Init freq shift: ", freq_shift, "Packet len:", self.PACKET_LEN)
                         
                         t_queue = np.arange(0, len(queue))/self.FS
-                        queue = queue * np.exp(1j * 2 * math.pi * freq_shift * t_queue)
+                        # queue = queue * np.exp(1j * 2 * math.pi * freq_shift * t_queue)
                 if (self.PREAMBLE_DEMOD == False):
                     self.PACKET_DETECTED = False 
                 else: 
@@ -174,12 +176,28 @@ class CssDemod():
                 Decode symbols until the packet is exhausted 
                 '''                
                 if (self.PACKETS_DECODED < self.PACKET_LEN):
-                    sym = self.symbol_demod_sig(queue[queue_idx:queue_idx+self.WINDOW_SIZE])
+                    # sym = self.symbol_demod_sig(queue[queue_idx:queue_idx+self.WINDOW_SIZE])
+                    tt = np.arange(0, self.WINDOW_SIZE)/self.FS
+                    sym = self.symbol_demod_sig(queue[queue_idx:queue_idx+self.WINDOW_SIZE]* np.exp(1j * 2 * math.pi * self.doppler_cum * tt))
+                    
+                    # get a new fine-grained doppler estimate  sym_2_css(self, symbol, N, SF, BW, Fs)
+                    reference = self.sym_2_css([sym], self.N, self.SF, self.BW, self.FS)
+                    t_queue = np.arange(0, len(queue))/self.FS
+                    freq_lin = self.BW / (self.N)
+                    f_shift_new = self.get_doppler_preamble(reference, queue[queue_idx:queue_idx+self.WINDOW_SIZE], freq_lin,self.FD_FINE,t_queue)
+                    f_shift_new = 0
+                    # queue = queue * np.exp(1j * 2 * math.pi * f_shift_new * t_queue)
+                    self.doppler_cum = self.doppler_cum + f_shift_new
+                    
                     self.OUTPUT_PKT.append(sym)
                     self.PACKETS_DECODED = self.PACKETS_DECODED+1
                 elif (self.END_COUNTER < len(self.END_DELIMETER)): 
                     # count the end delimeter 
-                    check_sym = self.symbol_demod_sig(queue[queue_idx:queue_idx+self.WINDOW_SIZE])
+                    # check_sym = self.symbol_demod_sig(queue[queue_idx:queue_idx+self.WINDOW_SIZE])
+                    tt = np.arange(0, self.WINDOW_SIZE)/self.FS
+                    check_sym = self.symbol_demod_sig(queue[queue_idx:queue_idx+self.WINDOW_SIZE]* np.exp(1j * 2 * math.pi * self.doppler_cum * tt))
+                    
+                    
                     if (self.END_DELIMETER[self.END_COUNTER] != check_sym):
                         print(self.END_DELIMETER[self.END_COUNTER], check_sym)
                         print("Bad delimeter.,Dop err",self.doppler_cum)      
@@ -212,6 +230,10 @@ class CssDemod():
                     
                     self.possible_idx = possible_idx   
                     self.possible_doppler_shifts = possible_doppler_shifts
+                    
+                    if (possible_idx[0] + queue_idx > self.SNR_win):
+                        self.noise_sig = queue[possible_idx[0] + queue_idx-self.SNR_win:possible_idx[0] + queue_idx]
+                        print("new noise sig:", len(self.noise_sig))
                 else: 
                     self.PACKET_DETECTED = False
                     print("No packet in this queue.")
@@ -226,6 +248,7 @@ class CssDemod():
         
     def pkt_detection(self, Rx_Buffer, SF, BW, FS,  num_preamble):
         upsampling_factor = int(FS / BW)
+        # upsampling_factor = 10
         # print("Upsampling factor:", upsampling_factor)
         N = int(2 ** SF)
         num_preamble -= 1  # need to find n-1 total chirps (later filtered by sync word)
@@ -244,11 +267,6 @@ class CssDemod():
                 temp_wind_fft = abs(
                     np.fft.fft(Rx_Buffer[(i * upsampling_factor * N) + offset:
                                          ((i + 1) * upsampling_factor * N) + offset] * DC_upsamp, axis=0))
-                # temp_wind_fft_idx = np.concatenate(
-                    # [np.arange(0, N // 2), np.arange(N // 2 + (upsampling_factor - 1) * N, upsampling_factor * N)])
-                # temp_wind_fft_idx = np.arange(0, upsampling_factor * N)
-                
-                # temp_wind_fft = temp_wind_fft[temp_wind_fft_idx]
                 
                 b = np.argmax(temp_wind_fft)
                 if len(ind_buff) >= num_preamble:
@@ -275,11 +293,11 @@ class CssDemod():
                         Pream_ind = np.append(Pream_ind, (i - (num_preamble - 1)) * (upsampling_factor * N) + offset)
         
         # print('Found ', count, ' Preambles', len(Pream_ind))
-        if (count == 1): 
-            return []
-        if count >= (loop * 0.70):
-            Preamble_ind = np.array([], int)
-            return Preamble_ind
+        # if (count == 1): 
+            # return []
+        # if count >= (loop * 0.70):
+            # Preamble_ind = np.array([], int)
+            # return Preamble_ind
                 
         # # Synchronization
         Pream_ind.sort()
@@ -291,6 +309,7 @@ class CssDemod():
         possible_dop = []
         for ind in Pream_ind: 
             nshifts = N*int(FS/BW)
+            # nshifts = N*10
             shifts = np.arange(0, nshifts)
 
             max_shift_arr = []
@@ -335,9 +354,6 @@ class CssDemod():
         '''
         Get dopppler from the preamble, and decode packet length. 
         '''            
-        # plt.figure(1)
-        # plt.specgram(queue)
-        # plt.show()
         
         demod_status = False     
         
@@ -345,15 +361,11 @@ class CssDemod():
         
         preamb_with_sync = np.concatenate((ref_preamble, np.conjugate(self.sym_2_css([0,0], N, SF,BW,FS))))
         preamb_candidate = queue[:len(ref_preamble)+window_size*2]
-        # freq_shift1 = self.get_doppler_preamble(preamb_with_sync, preamb_candidate,FD_MAX,FD_COARSE,tp)                
-        # freq_shift1 = -freq_shift1
         preamb_candidate = preamb_candidate * np.exp(1j * 2 * math.pi * freq_shift1 * tp)
         # perform fine sync, on the order of bins
         freq_shift2 = self.get_doppler_preamble(preamb_with_sync,preamb_candidate, FD_COARSE+2*FD_FINE,FD_FINE,tp)        
         
         freq_shift = freq_shift1 + freq_shift2        
-        
-        # print('Doppler preamble Frequency shift,', freq_shift)
         # check to make sure we can demodulate the preamble. If not, something went wrong with our sync and we need to try another pt 
         ts = np.linspace(0, window_size/FS, window_size)
         for symdx in range(0,7):
@@ -389,12 +401,16 @@ class CssDemod():
         '''    
         
         #print("Input sigs",len(signal_sig),len(noise_sig))
-        noise_power = np.sqrt(np.mean(np.real(self.noise_sig)*np.real(self.noise_sig)+ np.imag(self.noise_sig)*np.imag(self.noise_sig)))**2 / (len(signal_sig))
+        # noise_power = np.sqrt(np.mean(np.real(self.noise_sig)*np.real(self.noise_sig)+ np.imag(self.noise_sig)*np.imag(self.noise_sig)))**2 / (len(signal_sig))
         
-        signal_power = np.sqrt(np.mean(np.real(signal_sig)*np.real(signal_sig)+np.imag(signal_sig)*np.imag(signal_sig)))**2 / (len(signal_sig))
-                       
+        # signal_power = np.sqrt(np.mean(np.real(signal_sig)*np.real(signal_sig)+np.imag(signal_sig)*np.imag(signal_sig)))**2 / (len(signal_sig))
+        
+        noise_power = np.sum(np.abs(noise_sig)**2) / (len(noise_sig))
+        
+        signal_power = np.sum(np.abs(signal_sig)**2) / len(signal_sig)
+           
+             
         current_SNR = 20 * np.log10( (signal_power-noise_power) / noise_power) 
-        #print(noise_power, signal_power)
         return current_SNR
         
     def symbol_demod_sig(self,sig_tmp):
@@ -433,6 +449,7 @@ class CssDemod():
         
         # Fs/Bw is upsamp...
         spsym = int(Fs/BW*N) # symbols defined by their freq offset at the start 
+        # spsym = N*10
         
         T = spsym/Fs
         k = BW/(T) 
@@ -469,7 +486,12 @@ class CssDemod():
         print("Ground Truth:",self.GND_TRUTH_PKT)
         print("Output:      ", self.OUTPUT_PKT)
         if (len(self.OUTPUT_PKT) == len(self.GND_TRUTH_PKT)):
-            print("num wrong: ",sum(np.subtract(self.OUTPUT_PKT , self.GND_TRUTH_PKT)))    
+            print("num wrong: ",np.count_nonzero(np.abs(np.subtract(self.OUTPUT_PKT , self.GND_TRUTH_PKT))))    
+            
+            # print(np.argwhere(np.abs(np.subtract(self.OUTPUT_PKT , self.GND_TRUTH_PKT)) > 0))
+            # plt.figure(1)
+            # plt.plot(np.abs(np.subtract(self.OUTPUT_PKT , self.GND_TRUTH_PKT)))
+            # plt.show()
         print("TOTAL PACKET COUNT: ", self.TOTAL_PKT_CNT)
         # if (abs(sum(np.subtract(self.OUTPUT_PKT , self.GND_TRUTH_PKT))) > 0):
             # plt.figure(6)

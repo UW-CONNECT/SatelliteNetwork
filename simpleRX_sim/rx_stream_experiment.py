@@ -26,7 +26,7 @@ from matplotlib import pyplot as plt
 #exp_root_folder = 'ber_desktop_testing'
 exp_root_folder = '../../experiment_data'
 
-exp_folder = 'SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100CR_0'
+exp_folder = 'SF_7N_128BW_2500FS_200000NPKTS_5PLEN_100CR_0'
 
 trial_name = "trial1"
 #### 
@@ -53,9 +53,11 @@ OVERLAP = 0
 #print(SF, N, UPSAMP)
 #PREAMBLE_SZ = int(len(preamble)/2)*N*UPSAMP
 #PREAMBLE_SZ = 3*N*UPSAMP
+# FS = 200000
 FS = 200000
 # UPSAMP = int(RAW_FS/BW)
 UPSAMP = int(FS/BW)
+# UPSAMP = 10
 PREAMBLE_SZ = 1*N*UPSAMP
 # PREAMBLE_SZ = 1*N*(RAW_FS/BW)
 # PREAMBLE_SZ = int(1*N*(RAW_FS/BW))
@@ -72,7 +74,10 @@ END_DELIMITER = end_delimeter
 #DB_THRESH = -33.4
 #DB_THRESH = -8   # sim at .035 noise
 #DB_THRESH = -5.5
+# FS = UPSAMP*BW
 FS = UPSAMP*BW
+# FS = RAW_FS
+# FS = RAW_FS
 # print("Sampling frequency:", FS)
 #DB_THRESH = -7
 DB_THRESH = -11

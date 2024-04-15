@@ -295,6 +295,7 @@ class CssMod:
         
         # Fs/Bw is upsamp...
         spsym = int(Fs/BW*N) # symbols defined by their freq offset at the start 
+        # spsym = N*10
         
         T = spsym/Fs
         k = BW/(T) 

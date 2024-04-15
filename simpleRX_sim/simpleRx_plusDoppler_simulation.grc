@@ -41,26 +41,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [248, 24.0]
+    coordinate: [248, 23]
     rotation: 0
     state: enabled
-- name: FrequencyShifter_0
-  id: FrequencyShifter
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    frequency: '10000'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samp_rate: '0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [295, 177]
-    rotation: 0
-    state: true
 - name: analog_const_source_x_0
   id: analog_const_source_x
   parameters:
@@ -143,7 +126,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_20000FS_200000NPKTS_10PLEN_100CR_0\trial1
+    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_2500FS_200000NPKTS_5PLEN_100CR_0\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -202,13 +185,57 @@ blocks:
     coordinate: [32, 360.0]
     rotation: 0
     state: disabled
+- name: blocks_file_source_4
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: J:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleTX_sim\doppler_sim_scripts\GNURADIO_linear_apogee
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'True'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [128, 351]
+    rotation: 0
+    state: disabled
+- name: blocks_file_source_5
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: J:\schellberg\indoor_exp_feb_2024\doppler_simulation_files\GNURADIO_linear_8k_sep
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'True'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [117, 378]
+    rotation: 0
+    state: disabled
 - name: blocks_multiply_const_vxx_0
   id: blocks_multiply_const_vxx
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    const: '.004'
+    const: '1'
     maxoutbuf: '0'
     minoutbuf: '0'
     type: complex
@@ -217,7 +244,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [105, 296]
+    coordinate: [144, 279]
     rotation: 0
     state: enabled
 - name: blocks_multiply_xx_0
@@ -272,6 +299,42 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [269, 358]
+    rotation: 0
+    state: disabled
+- name: blocks_multiply_xx_3
+  id: blocks_multiply_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [372, 370]
+    rotation: 0
+    state: disabled
+- name: blocks_multiply_xx_4
+  id: blocks_multiply_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [394, 292]
     rotation: 0
     state: disabled
 - name: blocks_throttle2_0
@@ -387,7 +450,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [274, 287]
+    coordinate: [249, 190]
     rotation: 0
     state: enabled
 - name: channels_channel_model_0
@@ -408,7 +471,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [423, 14]
+    coordinate: [446, 30]
     rotation: 0
     state: enabled
 - name: freq_xlating_fir_filter_xxx_0
@@ -505,11 +568,12 @@ blocks:
     state: enabled
 
 connections:
-- [FrequencyShifter_0, '0', channels_channel_model_0, '0']
 - [blocks_file_source_0, '0', blocks_throttle_0, '0']
 - [blocks_file_source_1, '0', blocks_multiply_const_vxx_0, '0']
 - [blocks_file_source_2, '0', blocks_multiply_xx_1, '1']
 - [blocks_file_source_3, '0', blocks_multiply_xx_2, '1']
+- [blocks_file_source_4, '0', blocks_multiply_xx_3, '1']
+- [blocks_file_source_5, '0', blocks_multiply_xx_4, '1']
 - [blocks_multiply_const_vxx_0, '0', blocks_multiply_xx_0, '0']
 - [blocks_multiply_const_vxx_0, '0', blocks_multiply_xx_1, '0']
 - [blocks_multiply_const_vxx_0, '0', blocks_multiply_xx_2, '0']
@@ -518,13 +582,17 @@ connections:
 - [blocks_multiply_xx_1, '0', channels_channel_model_0, '0']
 - [blocks_multiply_xx_2, '0', blocks_throttle2_0, '0']
 - [blocks_multiply_xx_2, '0', blocks_throttle_2, '0']
+- [blocks_multiply_xx_3, '0', channels_channel_model_0, '0']
+- [blocks_multiply_xx_4, '0', channels_channel_model_0, '0']
 - [blocks_throttle2_0, '0', channels_channel_model_0, '0']
 - [blocks_throttle_0, '0', blocks_multiply_xx_0, '1']
 - [blocks_throttle_1, '0', qtgui_sink_x_0, '0']
 - [blocks_throttle_1, '0', zeromq_pub_sink_0, '0']
 - [blocks_throttle_2, '0', channels_channel_model_0, '0']
 - [blocks_throttle_3, '0', channels_channel_model_0, '0']
-- [blocks_throttle_4, '0', FrequencyShifter_0, '0']
+- [blocks_throttle_4, '0', blocks_multiply_xx_3, '0']
+- [blocks_throttle_4, '0', blocks_multiply_xx_4, '0']
+- [blocks_throttle_4, '0', channels_channel_model_0, '0']
 - [channels_channel_model_0, '0', blocks_file_sink_0, '0']
 - [channels_channel_model_0, '0', blocks_file_sink_1, '0']
 - [channels_channel_model_0, '0', freq_xlating_fir_filter_xxx_0, '0']
