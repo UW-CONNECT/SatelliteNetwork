@@ -126,7 +126,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_2500FS_200000NPKTS_5PLEN_100CR_0\trial1
+    file: J:\schellberg\indoor_exp_feb_2024\experiment_data_synced\0\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'

@@ -78,7 +78,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [504, 308.0]
+    coordinate: [475, 270]
     rotation: 0
     state: true
 - name: qtgui_sink_x_0
@@ -102,12 +102,12 @@ blocks:
     showports: 'False'
     showrf: 'False'
     type: complex
-    wintype: window.WIN_BLACKMAN_hARRIS
+    wintype: firdes.WIN_BLACKMAN_hARRIS
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [793, 274]
+    coordinate: [611, 126]
     rotation: 0
     state: true
 - name: uhd_usrp_sink_0
@@ -386,7 +386,7 @@ blocks:
     bus_structure: null
     coordinate: [784, 128.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: zeromq_pull_source_0
   id: zeromq_pull_source
   parameters:
@@ -447,7 +447,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 316.0]
+    coordinate: [176, 225]
     rotation: 0
     state: true
 

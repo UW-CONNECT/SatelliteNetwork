@@ -23,7 +23,10 @@ symbols = np.concatenate((np.ones(8), range(1,50)))
 
 preamble = [1,1] 
 end_delimeter = [3,3,3,3]
-css_modulator = CssMod(N, UPSAMP,preamble, end_delimeter) 
+BW = 20000
+FS = 200000
+css_modulator = CssMod(N, SF, BW, FS, preamble, end_delimeter, 0) 
+# css_modulator = CssMod(N, UPSAMP,preamble, end_delimeter) 
 output = css_modulator.symbol2packet(symbols)
 print(len(output))
 bin_dat = np.float32(css_modulator.ang2bin(output))

@@ -37,7 +37,7 @@ FS = 200000
 PAYLOAD_LEN = 100
 # CR_LIST = [0,1,2,3,4] 
 # CR_LIST = [0,3] 
-CR_LIST = [0]
+CR_LIST = [0,3]
 
 symbols = []
 #for ss in range(0,1000):
@@ -46,6 +46,8 @@ symbols = []
 # preamble = [0,0,0,0,0,0,0,0,0,0]
 preamble = [0,0,0,0,0,0,0,0]
 end_delimeter = [3,3,3,3] 
+
+trial_num_name_out = 0
 for SF in SF_list:
     N = 2**SF
     for ss in range(0,PAYLOAD_LEN):
@@ -57,16 +59,23 @@ for SF in SF_list:
             UPSAMP = 10 # grandfathered
         
         # CR = 0 # coding rate, 0 for no hamming encoding, 1-4 for other corresponding options
-            exp_root_folder = '../../experiment_data'
+            # exp_root_folder = '../../experiment_data'
+            exp_root_folder = '../../experiment_data_synced'
             #exp_root_folder = '../../simulated_data'
             #exp_folder = str(NUMPKTS) + '_pkts_' + str(SF) + '_SF'  
-            exp_folder = 'SF_' + str(SF) + 'N_' + str(N) + 'BW_' + str(BW) + 'FS_' + str(FS) +\
-            'NPKTS_' +str(NUMPKTS) + 'PLEN_' +str(PAYLOAD_LEN) +'CR_' +str(CR)
+            # exp_folder = 'SF_' + str(SF) + 'N_' + str(N) + 'BW_' + str(BW) + 'FS_' + str(FS) +\
+            # 'NPKTS_' +str(NUMPKTS) + 'PLEN_' +st+ str(N) + 'BW_' + str(BW) + 'FS_' + str(FS) +\
+            # 'NPKTS_' +str(NUMPKTS) + 'PLEN_' +str(PAYLOAD_LEN) +'CR_' +str(CR)
+            exp_folder = str(trial_num_name_out)
             trial_name = "trial1"
 
             Path(exp_root_folder+'/'+exp_folder).mkdir(parents=True, exist_ok=True)
             Path('ground_truth/'+exp_root_folder+'/'+exp_folder+'/').mkdir(parents=True, exist_ok=True)
             fileout_name = exp_root_folder+'/'+exp_folder+'/'+trial_name
+            # fileout_name = exp_root_folder+'/'+str(trial_num_name_out)+'/'+trial_name
+            # fileout_name = exp_root_folder+'/'+exp_folder+'/'+
+            # trial_num_name_out = trial_num_name_out + 1
+            trial_num_name_out = trial_num_name_out + 1
             gt_fileout_name = exp_root_folder+'/'+exp_folder+'/'+"ground_truth_out.pkl"
             
             css_modulator = CssMod(N, SF, BW, FS, preamble, end_delimeter, CR) 
@@ -84,7 +93,20 @@ for SF in SF_list:
 
             bin_dat = np.tile(bin_dat, NUMPKTS)
             bin_dat = np.append(bin_dat,np.float32(np.zeros((buffer_dat*8)))) # for simulation in GNURADIO
+            
+            nsamps_total = len(bin_dat) / (2)
+            
             bin_dat = bin_dat.tobytes()
+            
+            
+            DATA_FILE_PROC_TIME = nsamps_total/FS
+            data_proc_time_filename = exp_root_folder+'/'+exp_folder+'/'+"proc_file_time"
+            f = open(data_proc_time_filename, "w")
+            f.write(str(DATA_FILE_PROC_TIME))
+            f.close()
+            
+            
+            
             '''
             symbols = []
             for i in range(0, PAYLOAD_LEN):
