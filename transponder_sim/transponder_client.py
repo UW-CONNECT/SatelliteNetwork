@@ -85,10 +85,18 @@ def send_doppler_socket():
     context = zmq.Context() 
     zsocket = context.socket(zmq.PUB) 
     zsocket.bind("tcp://127.0.0.1:4444")
+    
+    # save the start time for alignment 
     experiment_start_time = time.time()
+    doppler_start_file = "doppler_start_file"
+    f = open(doppler_start_file, "w")
+    f.write(str(experiment_start_time))
+    f.close()
+    
     print("Started sending doppler data over TCP. Start time: ", experiment_start_time)
     with open(FILE_PATH, "rb") as f:
-        nbytes= int((32 /8) *2 * 200000)
+        # nbytes= int((32 /8) *2 * 200000)
+        nbytes= 200000
         print(nbytes)
         while (byte := f.read(nbytes)):
             # Do stuff with byte.        

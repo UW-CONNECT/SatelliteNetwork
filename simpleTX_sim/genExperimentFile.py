@@ -18,14 +18,15 @@ import pickle
 
 # SF = 7
 # SF_list = [7,8,9]
-SF_list = [7]
+SF_list = [7, 8, 9]
 #SF = 9
 
-NUMPKTS = 5
+NUMPKTS = 25
 # BW = 20000 
 # BW_list = [5000, 10000, 20000, 50000]
 # BW_list = [5000, 10000, 20000, 40000, 50000]
-BW_list = [2500]
+# BW_list = [2500, 10000, 20000]
+BW_list = [2500, 20000]
 # BW_list = [3000,5000,10000,20000]
 # BW_list = [20000]
 # print(len(BW_list))
@@ -37,7 +38,7 @@ FS = 200000
 PAYLOAD_LEN = 100
 # CR_LIST = [0,1,2,3,4] 
 # CR_LIST = [0,3] 
-CR_LIST = [0,3]
+CR_LIST = [0]
 
 symbols = []
 #for ss in range(0,1000):
@@ -50,6 +51,7 @@ end_delimeter = [3,3,3,3]
 trial_num_name_out = 0
 for SF in SF_list:
     N = 2**SF
+    symbols = []
     for ss in range(0,PAYLOAD_LEN):
         symbols.append(random.randint(1,N-1))
 
@@ -60,13 +62,12 @@ for SF in SF_list:
         
         # CR = 0 # coding rate, 0 for no hamming encoding, 1-4 for other corresponding options
             # exp_root_folder = '../../experiment_data'
-            exp_root_folder = '../../experiment_data_synced'
+            exp_root_folder = '../../experiment_data_june'
             #exp_root_folder = '../../simulated_data'
             #exp_folder = str(NUMPKTS) + '_pkts_' + str(SF) + '_SF'  
-            # exp_folder = 'SF_' + str(SF) + 'N_' + str(N) + 'BW_' + str(BW) + 'FS_' + str(FS) +\
-            # 'NPKTS_' +str(NUMPKTS) + 'PLEN_' +st+ str(N) + 'BW_' + str(BW) + 'FS_' + str(FS) +\
-            # 'NPKTS_' +str(NUMPKTS) + 'PLEN_' +str(PAYLOAD_LEN) +'CR_' +str(CR)
-            exp_folder = str(trial_num_name_out)
+            exp_folder = 'SF_' + str(SF) + 'N_' + str(N) + 'BW_' + str(BW) + 'FS_' + str(FS) +\
+            'NPKTS_' +str(NUMPKTS) + 'PLEN_' +str(PAYLOAD_LEN) +'CR_' +str(CR)
+            # exp_folder = str(trial_num_name_out)
             trial_name = "trial1"
 
             Path(exp_root_folder+'/'+exp_folder).mkdir(parents=True, exist_ok=True)

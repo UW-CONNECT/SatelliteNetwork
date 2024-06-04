@@ -62,3 +62,7 @@ simpleTX_sim/test_hamming_encode_ref
 simpleTX_sim/doppler_sim_scripts/doppler_8k_test
 simpleTX_sim/KJ5DKX EN53hb
 simpleTX_sim/KJ5DKX_audio
+/simpleRX_sim/__pycache__
+/simpleRX_sim/__pycache__
+simpleRX_sim/__pycache__/css_demod_2.cpython-311.pyc
+simpleRX_sim/__pycache__/css_demod_2.cpython-312.pyc

@@ -1,6 +1,7 @@
 options:
   parameters:
     author: ''
+    catch_exceptions: 'True'
     category: '[GRC Hier Blocks]'
     cmake_opt: ''
     comment: ''
@@ -36,7 +37,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '200000'
+    value: 200e3
   states:
     bus_sink: false
     bus_source: false
@@ -44,13 +45,31 @@ blocks:
     coordinate: [248, 23]
     rotation: 0
     state: enabled
+- name: variable_low_pass_filter_taps_0
+  id: variable_low_pass_filter_taps
+  parameters:
+    beta: '6.76'
+    comment: ''
+    cutoff_freq: samp_rate/4
+    gain: '1.0'
+    samp_rate: samp_rate
+    value: ''
+    width: samp_rate/8
+    win: window.WIN_HAMMING
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [463, 13]
+    rotation: 0
+    state: true
 - name: analog_const_source_x_0
   id: analog_const_source_x
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    const: '0'
+    const: '1'
     maxoutbuf: '0'
     minoutbuf: '0'
     type: complex
@@ -58,75 +77,17 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [288, 392.0]
+    coordinate: [32, 336.0]
     rotation: 0
     state: disabled
-- name: blocks_file_sink_0
-  id: blocks_file_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    append: 'False'
-    comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\Standard_LoRa\sf7_with_doppler
-    type: complex
-    unbuffered: 'False'
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [714, 300]
-    rotation: 0
-    state: disabled
-- name: blocks_file_sink_1
-  id: blocks_file_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    append: 'False'
-    comment: ''
-    file: C:\Users\schellberg\Documents\schellberg\Standard_LoRa\sf7_with_doppler
-    type: complex
-    unbuffered: 'False'
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [584, 270]
-    rotation: 0
-    state: true
-- name: blocks_file_source_0
+- name: blocks_file_source_0_0
   id: blocks_file_source
   parameters:
     affinity: ''
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleTX_sim\doppler_sim_scripts\GNURADIO_linear_apogee
-    length: '0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    offset: '0'
-    repeat: 'True'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [16, 294]
-    rotation: 0
-    state: disabled
-- name: blocks_file_source_1
-  id: blocks_file_source
-  parameters:
-    affinity: ''
-    alias: ''
-    begin_tag: pmt.PMT_NIL
-    comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\experiment_data_synced\0\trial1
+    file: J:\schellberg\indoor_exp_feb_2024\experiment_data_june\SF_7N_128BW_2500FS_200000NPKTS_25PLEN_100CR_0\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -138,104 +99,38 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [18, 106]
+    coordinate: [0, 104.0]
     rotation: 0
     state: enabled
-- name: blocks_file_source_2
+- name: blocks_file_source_8
   id: blocks_file_source
   parameters:
     affinity: ''
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: ''
+    file: J:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleTX_sim\doppler_sim_scripts\doppler_sync_testing
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
     offset: '0'
-    repeat: 'True'
+    repeat: 'False'
     type: complex
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [70, 300]
+    coordinate: [72, 416.0]
     rotation: 0
-    state: disabled
-- name: blocks_file_source_3
-  id: blocks_file_source
-  parameters:
-    affinity: ''
-    alias: ''
-    begin_tag: pmt.PMT_NIL
-    comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\doppler_simulation_files\GNURADIO_linear_8k_sep
-    length: '0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    offset: '0'
-    repeat: 'True'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [32, 360.0]
-    rotation: 0
-    state: disabled
-- name: blocks_file_source_4
-  id: blocks_file_source
-  parameters:
-    affinity: ''
-    alias: ''
-    begin_tag: pmt.PMT_NIL
-    comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleTX_sim\doppler_sim_scripts\GNURADIO_linear_apogee
-    length: '0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    offset: '0'
-    repeat: 'True'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [128, 351]
-    rotation: 0
-    state: disabled
-- name: blocks_file_source_5
-  id: blocks_file_source
-  parameters:
-    affinity: ''
-    alias: ''
-    begin_tag: pmt.PMT_NIL
-    comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\doppler_simulation_files\GNURADIO_linear_8k_sep
-    length: '0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    offset: '0'
-    repeat: 'True'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [117, 378]
-    rotation: 0
-    state: disabled
-- name: blocks_multiply_const_vxx_0
+    state: enabled
+- name: blocks_multiply_const_vxx_1
   id: blocks_multiply_const_vxx
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    const: '1'
+    const: '.003'
     maxoutbuf: '0'
     minoutbuf: '0'
     type: complex
@@ -244,10 +139,10 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [144, 279]
+    coordinate: [136, 272.0]
     rotation: 0
     state: enabled
-- name: blocks_multiply_xx_0
+- name: blocks_multiply_xx_6
   id: blocks_multiply_xx
   parameters:
     affinity: ''
@@ -262,82 +157,10 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [360, 273]
+    coordinate: [312, 312.0]
     rotation: 0
-    state: disabled
-- name: blocks_multiply_xx_1
-  id: blocks_multiply_xx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_inputs: '2'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [327, 252]
-    rotation: 0
-    state: disabled
-- name: blocks_multiply_xx_2
-  id: blocks_multiply_xx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_inputs: '2'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [269, 358]
-    rotation: 0
-    state: disabled
-- name: blocks_multiply_xx_3
-  id: blocks_multiply_xx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_inputs: '2'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [372, 370]
-    rotation: 0
-    state: disabled
-- name: blocks_multiply_xx_4
-  id: blocks_multiply_xx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_inputs: '2'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [394, 292]
-    rotation: 0
-    state: disabled
-- name: blocks_throttle2_0
+    state: enabled
+- name: blocks_throttle2_1
   id: blocks_throttle2
   parameters:
     affinity: ''
@@ -355,105 +178,10 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [256, 136.0]
-    rotation: 0
-    state: true
-- name: blocks_throttle_0
-  id: blocks_throttle
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: samp_rate
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [232, 364]
-    rotation: 0
-    state: disabled
-- name: blocks_throttle_1
-  id: blocks_throttle
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: samp_rate
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [536, 235]
-    rotation: 0
-    state: disabled
-- name: blocks_throttle_2
-  id: blocks_throttle
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: samp_rate
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [363, 364]
-    rotation: 0
-    state: disabled
-- name: blocks_throttle_3
-  id: blocks_throttle
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: samp_rate
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [336, 333]
-    rotation: 0
-    state: disabled
-- name: blocks_throttle_4
-  id: blocks_throttle
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: samp_rate
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [249, 190]
+    coordinate: [544, 208.0]
     rotation: 0
     state: enabled
-- name: channels_channel_model_0
+- name: channels_channel_model_1
   id: channels_channel_model
   parameters:
     affinity: ''
@@ -471,54 +199,10 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [446, 30]
+    coordinate: [408, 312.0]
     rotation: 0
-    state: enabled
-- name: freq_xlating_fir_filter_xxx_0
-  id: freq_xlating_fir_filter_xxx
-  parameters:
-    affinity: ''
-    alias: ''
-    center_freq: '0'
-    comment: ''
-    decim: '1'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samp_rate: samp_rate
-    taps: variable_low_pass_filter_taps_0
-    type: ccc
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [673, 190]
-    rotation: 0
-    state: disabled
-- name: low_pass_filter_0
-  id: low_pass_filter
-  parameters:
-    affinity: ''
-    alias: ''
-    beta: '6.76'
-    comment: ''
-    cutoff_freq: '30000'
-    decim: '1'
-    gain: '1'
-    interp: '1'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samp_rate: samp_rate
-    type: fir_filter_ccf
-    width: '2000'
-    win: firdes.WIN_HAMMING
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [640, 317]
-    rotation: 0
-    state: disabled
-- name: qtgui_sink_x_0
+    state: true
+- name: qtgui_sink_x_1
   id: qtgui_sink_x
   parameters:
     affinity: ''
@@ -539,22 +223,25 @@ blocks:
     showports: 'False'
     showrf: 'False'
     type: complex
-    wintype: firdes.WIN_BLACKMAN_hARRIS
+    wintype: window.WIN_BLACKMAN_hARRIS
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [676, 18]
+    coordinate: [800, 104.0]
     rotation: 0
-    state: enabled
+    state: true
 - name: zeromq_pub_sink_0
   id: zeromq_pub_sink
   parameters:
     address: tcp://127.0.0.1:55555
     affinity: ''
     alias: ''
+    bind: 'True'
     comment: ''
+    drop_on_hwm: 'True'
     hwm: '-1'
+    key: ''
     pass_tags: 'False'
     timeout: '100'
     type: complex
@@ -563,46 +250,20 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [657, 156]
+    coordinate: [744, 280.0]
     rotation: 0
     state: enabled
 
 connections:
-- [blocks_file_source_0, '0', blocks_throttle_0, '0']
-- [blocks_file_source_1, '0', blocks_multiply_const_vxx_0, '0']
-- [blocks_file_source_2, '0', blocks_multiply_xx_1, '1']
-- [blocks_file_source_3, '0', blocks_multiply_xx_2, '1']
-- [blocks_file_source_4, '0', blocks_multiply_xx_3, '1']
-- [blocks_file_source_5, '0', blocks_multiply_xx_4, '1']
-- [blocks_multiply_const_vxx_0, '0', blocks_multiply_xx_0, '0']
-- [blocks_multiply_const_vxx_0, '0', blocks_multiply_xx_1, '0']
-- [blocks_multiply_const_vxx_0, '0', blocks_multiply_xx_2, '0']
-- [blocks_multiply_const_vxx_0, '0', blocks_throttle_4, '0']
-- [blocks_multiply_xx_0, '0', channels_channel_model_0, '0']
-- [blocks_multiply_xx_1, '0', channels_channel_model_0, '0']
-- [blocks_multiply_xx_2, '0', blocks_throttle2_0, '0']
-- [blocks_multiply_xx_2, '0', blocks_throttle_2, '0']
-- [blocks_multiply_xx_3, '0', channels_channel_model_0, '0']
-- [blocks_multiply_xx_4, '0', channels_channel_model_0, '0']
-- [blocks_throttle2_0, '0', channels_channel_model_0, '0']
-- [blocks_throttle_0, '0', blocks_multiply_xx_0, '1']
-- [blocks_throttle_1, '0', qtgui_sink_x_0, '0']
-- [blocks_throttle_1, '0', zeromq_pub_sink_0, '0']
-- [blocks_throttle_2, '0', channels_channel_model_0, '0']
-- [blocks_throttle_3, '0', channels_channel_model_0, '0']
-- [blocks_throttle_4, '0', blocks_multiply_xx_3, '0']
-- [blocks_throttle_4, '0', blocks_multiply_xx_4, '0']
-- [blocks_throttle_4, '0', channels_channel_model_0, '0']
-- [channels_channel_model_0, '0', blocks_file_sink_0, '0']
-- [channels_channel_model_0, '0', blocks_file_sink_1, '0']
-- [channels_channel_model_0, '0', freq_xlating_fir_filter_xxx_0, '0']
-- [channels_channel_model_0, '0', low_pass_filter_0, '0']
-- [channels_channel_model_0, '0', qtgui_sink_x_0, '0']
-- [channels_channel_model_0, '0', zeromq_pub_sink_0, '0']
-- [freq_xlating_fir_filter_xxx_0, '0', qtgui_sink_x_0, '0']
-- [freq_xlating_fir_filter_xxx_0, '0', zeromq_pub_sink_0, '0']
-- [low_pass_filter_0, '0', qtgui_sink_x_0, '0']
-- [low_pass_filter_0, '0', zeromq_pub_sink_0, '0']
+- [analog_const_source_x_0, '0', blocks_multiply_xx_6, '1']
+- [blocks_file_source_0_0, '0', blocks_multiply_const_vxx_1, '0']
+- [blocks_file_source_8, '0', blocks_multiply_xx_6, '1']
+- [blocks_multiply_const_vxx_1, '0', blocks_multiply_xx_6, '0']
+- [blocks_multiply_xx_6, '0', channels_channel_model_1, '0']
+- [blocks_throttle2_1, '0', qtgui_sink_x_1, '0']
+- [blocks_throttle2_1, '0', zeromq_pub_sink_0, '0']
+- [channels_channel_model_1, '0', blocks_throttle2_1, '0']
 
 metadata:
   file_format: 1
+  grc_version: 3.10.8.0

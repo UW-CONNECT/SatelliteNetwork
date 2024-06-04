@@ -63,7 +63,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_50000FS_200000NPKTS_25PLEN_100CR_0\trial1
+    file: J:\schellberg\indoor_exp_feb_2024\experiment_data_synced\SF_7N_128BW_5000FS_200000NPKTS_25PLEN_100CR_0\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -220,7 +220,7 @@ blocks:
     comment: ''
     dev_addr: '""'
     dev_args: '""'
-    gain0: '70'
+    gain0: '40'
     gain1: '0'
     gain10: '0'
     gain11: '0'
@@ -381,7 +381,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [454, 183]
+    coordinate: [454, 184]
     rotation: 0
     state: enabled
 

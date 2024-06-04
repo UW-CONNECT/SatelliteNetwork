@@ -68,6 +68,12 @@ def send_tx_zmq_data(trial_number):
     zsocket = context.socket(zmq.PUB) 
     zsocket.bind("tcp://127.0.0.1:4444")
     experiment_start_time = time.time() # [TODO] save this to synchronize the experiments
+    
+    f = open(experiment_time_path, "w")
+    f.write(str(experiment_start_time))
+    f.close()
+    
+    
     print("Started sending TX data over ZMQ. Start time: ", experiment_start_time)
     with open(FILE_PATH, "rb") as f:
         # nbytes= int((32 /8) *2 * 200000)
@@ -122,8 +128,8 @@ if __name__ == "__main__":
             if (message[0] == START_SYMBOL): 
                 print("Bouta start")
                 status = [START_SYMBOL ]
-                thread = threading.Thread(target=run_sync_experiment, args=())
-                thread.start()
+                # thread = threading.Thread(target=run_sync_experiment, args=())
+                # thread.start()
             elif (message[0] == END_SYMBOL): 
                 status = [END_SYMBOL ]
         

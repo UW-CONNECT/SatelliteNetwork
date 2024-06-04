@@ -76,6 +76,12 @@ def send_tx_zmq_data(trial_number):
     zsocket = context.socket(zmq.PUB) 
     zsocket.bind("tcp://127.0.0.1:4444")
     experiment_start_time = time.time()
+    
+    experiment_time_path= EXP_ROOT_FOLDER + '\\' + str(trial_number) + '\\' + "posix_start_time"
+    f = open(experiment_time_path, "w")
+    f.write(str(experiment_start_time))
+    f.close()
+    
     print("Started sending TX data over TCP. Start time: ", experiment_start_time)
     with open(FILE_PATH, "rb") as f:
         nbytes= int((32 /8) *2 * 200000)
@@ -118,8 +124,8 @@ def run_experiment(conns,addrs):
                 
                 # Run our streamer with the correct configuration. 
                 p = subprocess.Popen("python rx_stream_from_args.py " + str(current_trial_number) )
-                time.sleep(float(DATA_FILE_PROC_TIME)+2)
-                p.kill()
+                # time.sleep(float(DATA_FILE_PROC_TIME)+2)
+                # p.kill()
                 
                 print("Killed this process.")
                 current_trial_number = current_trial_number + 1 

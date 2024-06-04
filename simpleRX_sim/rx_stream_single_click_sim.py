@@ -15,18 +15,36 @@ from threading import Thread
 from queue import Queue
 import numpy as np
 from utils import *
-from css_demod import CssDemod
-
+#from css_demod import CssDemod
+from css_demod_2 import CssDemod
+import pickle
 import zmq
-
+import os 
 from matplotlib import pyplot as plt
 
+#### Load data related to the experiment for BER/SNR/etc
+#exp_root_folder = 'ber_desktop_testing'
+# exp_root_folder = '../../experiment_data'
+exp_root_folder = '../../experiment_data_synced'
+
+f = open('../trial_under_test.txt')
+exp_folder = f.read()
+f.close()
+
+# exp_folder = 'SF_7N_128BW_2500FS_200000NPKTS_5PLEN_100CR_0'
+
+trial_name = "trial1"
+#### 
+gnd_truth_data = '../simpleTX_sim/ground_truth'+'/'+exp_root_folder + '/' + exp_folder + '/' + trial_name + '.pkl'
+gnd_truth_data = exp_root_folder + '/' + exp_folder + '/' +"ground_truth_out.pkl"
+with open(gnd_truth_data,'rb') as f: 
+    SF, N, UPSAMP,NUMPKTS, BW, PAYLOAD_LEN,preamble,end_delimeter,symbols,CR = pickle.load(f)
 ############################### Variables ###############################
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
-#RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
-RAW_FS = 500000           # value should be kept <= expected length, so that we don't miss empty space
-
+RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
+# RAW_FS = 1000000           # value should be kept <= expected length, so that we don't miss empty space
+# RAW_FS=1250000
 LORA_CHANNELS = [1]  # channels to process
 
 UPSAMPLE_FACTOR = 4             		# factor to downsample to
@@ -34,11 +52,21 @@ UPSAMPLE_FACTOR = 4             		# factor to downsample to
 OVERLAP = 0
 
 # CSS Specifics to be known ahead of time
-SF = 9
-N = 2**SF
-UPSAMP = 10;
-PREAMBLE_SZ = N*UPSAMP
-END_DELIMITER = [3,3,3,3] 
+#SF = 9
+#N = 2**SF
+#UPSAMP = 10;
+#print(SF, N, UPSAMP)
+#PREAMBLE_SZ = int(len(preamble)/2)*N*UPSAMP
+#PREAMBLE_SZ = 3*N*UPSAMP
+# FS = 200000
+FS = 200000
+# UPSAMP = int(RAW_FS/BW)
+UPSAMP = int(FS/BW)
+# UPSAMP = 10
+PREAMBLE_SZ = 1*N*UPSAMP
+# PREAMBLE_SZ = 1*N*(RAW_FS/BW)
+# PREAMBLE_SZ = int(1*N*(RAW_FS/BW))
+END_DELIMITER = end_delimeter
 
 # Threshold envelope; at what power level do we expect to see a packet arrive? 
 # For low power scenario, this will have to be substituted 
@@ -50,7 +78,15 @@ END_DELIMITER = [3,3,3,3]
 #self.DB_THRESH = -30
 #DB_THRESH = -33.4
 #DB_THRESH = -8   # sim at .035 noise
-DB_THRESH = -5
+#DB_THRESH = -5.5
+# FS = UPSAMP*BW
+FS = UPSAMP*BW
+# FS = RAW_FS
+# FS = RAW_FS
+# print("Sampling frequency:", FS)
+#DB_THRESH = -7
+DB_THRESH = -11
+# print("Bandwidth:",BW)
 ##########################################################################
 
 def spawn_a_worker(my_channel, input_queue, output_queue):
@@ -58,8 +94,11 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
     # worker = YourDemodulatorImplementation(my_channel, input_queue, output_queue)
     # worker.start_consuming()
     ###########################################################################################################
-    css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH);
-    
+    #css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH);
+    #css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH, symbols,PAYLOAD_LEN,NUMPKTS,SF);
+    css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH, symbols,PAYLOAD_LEN,NUMPKTS,SF,BW,FS,CR);
+    outfile = ('../simpleTX_sim/'+exp_root_folder + '/' + exp_folder + '/' + 'error_out')
+    css_demodulator.setErrorMeasurementFile(outfile)
     print("Started")
     max_queue_cnt = 10
     while (True):
@@ -68,9 +107,14 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
             output = []
             css_demodulator.css_demod(my_channel, queue, output)     
             if (len(output) >= 1):
-                print(output)
+                #print(output)
+                print("====")
     print("Done.")
-        
+
+def run_tx():
+    time.sleep(10)
+    os.system("python ../simpleTX_sim/txFileToZMQ.py")
+    print("Started Tx.")
 def IQ_SOURCE(chan, chan_num):
     context = zmq.Context() 
     socket = context.socket(zmq.SUB)
@@ -114,7 +158,7 @@ if __name__ == "__main__":
         in_queue = multiprocessing.Queue()
         channel_streams.append(in_queue)
         multiprocessing.Process(target=spawn_a_worker, args=(i, in_queue, big_q)).start()
-
+    multiprocessing.Process(target=run_tx, args=()).start()
     time.sleep(2.0)
     for i in range(len(LORA_CHANNELS)):
         #print(LORA_CHANNELS[i])

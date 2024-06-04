@@ -24,9 +24,15 @@ from matplotlib import pyplot as plt
 
 #### Load data related to the experiment for BER/SNR/etc
 #exp_root_folder = 'ber_desktop_testing'
-exp_root_folder = '../../experiment_data'
+# exp_root_folder = '../../experiment_data'
+exp_root_folder = '../../experiment_data_synced'
+exp_root_folder = '../../experiment_data_june'
 
-exp_folder = 'SF_7N_128BW_2500FS_200000NPKTS_5PLEN_100CR_0'
+f = open('../trial_under_test.txt')
+exp_folder = f.read()
+f.close()
+
+# exp_folder = 'SF_7N_128BW_2500FS_200000NPKTS_5PLEN_100CR_0'
 
 trial_name = "trial1"
 #### 
@@ -37,8 +43,8 @@ with open(gnd_truth_data,'rb') as f:
 ############################### Variables ###############################
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
-RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
-# RAW_FS = 1000000           # value should be kept <= expected length, so that we don't miss empty space
+# RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
+RAW_FS = 1000000           # value should be kept <= expected length, so that we don't miss empty space
 # RAW_FS=1250000
 LORA_CHANNELS = [1]  # channels to process
 
@@ -54,7 +60,7 @@ OVERLAP = 0
 #PREAMBLE_SZ = int(len(preamble)/2)*N*UPSAMP
 #PREAMBLE_SZ = 3*N*UPSAMP
 # FS = 200000
-FS = 200000
+FS =200000
 # UPSAMP = int(RAW_FS/BW)
 UPSAMP = int(FS/BW)
 # UPSAMP = 10
@@ -98,15 +104,17 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
     max_queue_cnt = 10
     while (True):
         if (input_queue.qsize() > 0): 
-            queue = input_queue.get()[0]            
+            [queue, queue_time] = input_queue.get()  
+            # print("QUEUE_TIME:", queue_time)
             output = []
-            css_demodulator.css_demod(my_channel, queue, output)     
+            css_demodulator.css_demod(my_channel, queue, output, queue_time)     
             if (len(output) >= 1):
                 #print(output)
                 print("====")
     print("Done.")
         
 def IQ_SOURCE(chan, chan_num):
+# def IQ_SOURCE(chan, chan_num, exp_time):
     context = zmq.Context() 
     socket = context.socket(zmq.SUB)
     socket.connect("tcp://127.0.0.1:55555")
@@ -116,7 +124,7 @@ def IQ_SOURCE(chan, chan_num):
     counter = 0
     tmp = np.array([])
     atime = time.time()
-
+    
     while True:
         if socket.poll(10) != 0:
             message = socket.recv() 
@@ -153,6 +161,7 @@ if __name__ == "__main__":
     time.sleep(2.0)
     for i in range(len(LORA_CHANNELS)):
         #print(LORA_CHANNELS[i])
+        # multiprocessing.Process(target=IQ_SOURCE, args=(channel_streams[i], LORA_CHANNELS[i])).start()
         multiprocessing.Process(target=IQ_SOURCE, args=(channel_streams[i], LORA_CHANNELS[i])).start()
 
     time.sleep(7260)

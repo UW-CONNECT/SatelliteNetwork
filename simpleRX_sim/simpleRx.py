@@ -10,7 +10,6 @@
 
 from PyQt5 import Qt
 from gnuradio import qtgui
-from gnuradio import blocks
 from gnuradio import gr
 from gnuradio.filter import firdes
 from gnuradio.fft import window
@@ -102,14 +101,11 @@ class simpleRx(gr.top_block, Qt.QWidget):
         self.qtgui_sink_x_0.enable_rf_freq(False)
 
         self.top_layout.addWidget(self._qtgui_sink_x_0_win)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'Z:\\schellberg\\indoor_exp_feb_2024\\experiment_data\\SF_7N_128BW_5000FS_200000NPKTS_25PLEN_100CR_3\\rx_data_small', False)
-        self.blocks_file_sink_0.set_unbuffered(False)
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_file_sink_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.qtgui_sink_x_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.zeromq_pub_sink_0, 0))
 
