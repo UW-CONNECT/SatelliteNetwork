@@ -66,3 +66,7 @@ simpleTX_sim/KJ5DKX_audio
 /simpleRX_sim/__pycache__
 simpleRX_sim/__pycache__/css_demod_2.cpython-311.pyc
 simpleRX_sim/__pycache__/css_demod_2.cpython-312.pyc
+simpleTX_sim/CW_long_pulse
+simpleTX_sim/doppler_sim_scripts/doppler_out
+simpleTX_sim/doppler_sim_scripts/doppler_sync_testing
+simpleTX_sim/doppler_sim_scripts/doppler_sync_testing_time

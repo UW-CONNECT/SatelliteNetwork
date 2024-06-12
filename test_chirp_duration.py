@@ -15,7 +15,7 @@ import pickle
 import scipy.io
 import scipy.signal
 
-def sym_2_css(symbol, N, SF, BW, Fs, upsamp): 
+def sym_2_css(symbol, N, SF, BW, Fs): 
     '''
     sym_2_css :: Modules a symbol between (0,N-1) to a chirp  
     
@@ -27,9 +27,9 @@ def sym_2_css(symbol, N, SF, BW, Fs, upsamp):
     sym_out = []
     
     # Fs/Bw is upsamp...
-    # spsym = int(Fs/BW*N) # symbols defined by their freq offset at the start 
+    spsym = int(Fs/BW*N) # symbols defined by their freq offset at the start 
     # spsym = Ts
-    spsym = N*upsamp
+    # spsym = N*upsamp
     print("usamp vs samp:",N*upsamp, int(Fs/BW*N))
     # spsym = N*10
     
@@ -111,33 +111,21 @@ def create_upchirp():
     return sym_2_css([0], self.N, self.SF, self.BW, self.FS)
         
 if __name__ == "__main__": 
-    Fs=20000
+    Fs=200000
     # Ts = 1280 # whatever 20KHz symbol period was... nSamples for a symbol Ts/Fs = symbol period 
-    SF = 9 
+    SF = 7
     N = 2**SF
-    BW = 10000
+    BW = 2500
     upsamp = 1
-    uchirp = sym_2_css([0], N, SF, BW, Fs,upsamp)
+    uchirp1 = sym_2_css([0], N, SF, BW, Fs)
     
-    # cc=sym_2_css([0], N, SF, BW, Fs,20)
-    # cc = cc[::20]
-    # cc2 = sym_2_css([0], N, SF, BW, Fs,upsamp)
-    # cc2 = cc2[::10]
-    # plt.figure(1)
-    # plt.plot(cc)
-    # plt.plot(cc2)
-    # plt.show()
-    # sym_tmp = sym_2_css([int(N/2)], N, SF, BW, Fs,upsamp) 
-    sym_tmp = sym_2_css([64], N, SF, BW, Fs,upsamp) 
+    uchirp2 = sym_2_css([0], N, SF, BW, Fs/16)
     
-    demod_sym = symbol_demod_sig(sym_tmp, uchirp, upsamp,N)
-    print("ANS: ", demod_sym)
     plt.figure(1)
-    plt.specgram(uchirp)
+    plt.plot(uchirp1[::16])
     plt.show()
-    # # sym_tmp = scipy.signal.decimate(sym_tmp, upsamp)
-    # sym_tmp=sym_tmp[::upsamp]
-    # # uchirp = scipy.signal.decimate(uchirp, upsamp)
-    # uchirp = uchirp[::upsamp]
-    # plt.plot(np.fft.fft(np.conjugate(uchirp) * sym_tmp) )
-    # plt.show()
+    plt.figure(2)
+    
+    
+    plt.plot(uchirp2)
+    plt.show()

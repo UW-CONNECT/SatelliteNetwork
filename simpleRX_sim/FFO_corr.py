@@ -37,74 +37,141 @@ def sym_2_css(symbol, N, SF, BW, Fs):
                 ang_start = np.angle(cs[len(t_arr)-1]) # we need to keep track of the phase 
             else: 
                 ang_start = 0
-                    
-            #t_arr = np.arange(0, spsym*st_offset/N - 1)/Fs # [TODO] fix this ... 
+
             t_arr = np.arange(0, spsym*st_offset/N )/Fs 
             ce = np.exp(1j*(ang_start + 2*pi*(t_arr*(f_start +0.5*k*t_arr)) ))
             out_sig = np.concatenate((cs, ce))
-            #sym_out.append(out_sig)
             sym_out=np.append(sym_out,out_sig)
            
         return sym_out
 
 def FFO_corr(Data_stack,Upchirp_ind, SF, BW, Fs, N, num_preamble):
+    '''
+    Finds sampling offset for an upsampled signal Fs/BW that most 
+    accurately dechirps the signal (i.e., minimizes leakage into adjacent bins
+    and maximizes the peak)
+    '''
     upsampling_factor = int(Fs/BW)
     
     DC = np.conjugate(sym_2_css([0], N, SF, BW, Fs))
     
     inn = []
-    # data_shifts = []
-    # for i in range(upsampling_factor):
     for i in range(0,10):
-    # for i in range(4):
-        # freq_off = []
-        # data_wind = Data_stack[int(Upchirp_ind+i): int((Upchirp_ind+i)+(num_preamble)*N*upsampling_factor )]   
-        # Spec = stft_v2(data_wind, N*upsampling_factor, DC,0,0)
-        # temp = []
-        # freq_track_qual_before = ( np.sum((np.abs(Spec[0,:]) - np.abs(Spec[-1,:]))**2 ) + ( np.sum((np.abs(Spec[0,:]) - np.abs(Spec[1,:]))**2) ))**2
-            # freq_track_qual_tmp.append(( np.sum(np.abs(Spec[0,:])) - np.sum(np.abs(Spec[-1,:])) )+np.sum(np.abs(Spec[0,:])) + ( np.sum(np.abs(Spec[0,:])) - np.sum(np.abs(Spec[1,:])) ))
-        # freq_track_qual = np.mean(freq_track_qual_tmp)
-        # freq_track_qual =  np.sum(np.abs(Spec[0,:])) 
-        
-        
         freq_mean = [] 
         for pp in range(num_preamble-1):
             data_wind = Data_stack[int(Upchirp_ind+i)+(pp*N*upsampling_factor): int((Upchirp_ind+i)+((pp+1)*N*upsampling_factor)  )] 
-            # data_wind = data_wind * np.exp(1j * (- np.angle(data_wind[0])))   #tentatively adding leftover phase for random errors 
-            # print("Phase angle correction:", - np.angle(data_wind[0]))
-            # dech = np.abs(np.fft.fft(data_wind * DC, 32*len(data_wind)))
             dech = np.abs(np.fft.fft(np.concatenate([(data_wind * DC), np.zeros((len(data_wind)))]), 32*len(data_wind)))
-            # fft_idx = np.concatenate([ np.arange(int(N/2)), np.arange(-int(N/2))
             dech = np.concatenate([dech[:int(N/2)], dech[-int(N/2):]])
-            # freq_track_qual = ( np.sum((np.abs(dech[0]) - np.abs(dech[-1]))**2 ) + ( np.sum((np.abs(dech[0]) - np.abs(dech[1]))**2) ))**2
             freq_track_qual = np.argmax(np.abs(dech))
             if (freq_track_qual > int(N/2)):
                 freq_track_qual = N - freq_track_qual
-            # freq_track_qual = np.abs(dech[0])
-            
-            # Spec = stft_v2(data_wind, N*upsampling_factor, DC,0,0)
-            # freq_track_qual = ( np.sum((np.abs(Spec[0,:]) - np.abs(Spec[-1,:]))**2 ) + ( np.sum((np.abs(Spec[0,:]) - np.abs(Spec[1,:]))**2) ))
             freq_mean.append(freq_track_qual**2) 
         freq_track_qual = np.mean(freq_mean)
         inn.append(freq_track_qual)
         
-        # print("Freq track qual before: ", freq_track_qual_before, "After:", freq_track_qual)
-    # plt.figure(1)
-    # plt.plot(inn)
-    # plt.show()
     inn = np.array(inn)
-    # peak_stats.append(k_peak_stats)
-    # Data_freq_off = np.array(Data_freq_off)
-    # choosing the best Data_stack based on maximum energy difference from
-    # adjacent bins
-    # b = inn.argmax(0)
     b = inn.argmin(0) 
-    # output frequency offset corrected buffer with relevant, Peak
-    # statistics and frequency offsets
-    # Data_buff.append(Data_freq_off[b,:])
-    
-    # Data_buff = Data_buff[b:]   # apply the sampling offset a sa frequency correction
-    # FFO.append(ffo[b])
-    # peak_amp.append(peak_stats[k][b])
-    # Up_ind.append(Upchirp_ind[k,:])
     return b 
+def FFO_corr_sym(Data_stack, SF, BW, Fs, N, sym):
+    '''
+    Determines the fine frequency offset from the received samples in Datastack to the 
+    ideal generated symbol by dechirping with an upsampled FFT with resolution Fs/M and
+    identifying a frequency offset. 
+    '''
+    upsampling_factor = int(Fs/BW)
+    # print(Fs)
+    # print(upsampling_factor)
+    # DC = np.conjugate(sym_2_css([0], N, SF, BW, Fs))
+    # true_sym = sym_2_css([sym], N, SF, BW, Fs)
+    true_sym = np.conjugate(sym_2_css([sym], N, SF, BW, Fs))
+    npt = 16
+    # npt = 64
+    
+    # [TODO] Solve for base 2 number that provides the appropriate frequency resolution
+    
+    inn = []
+    bin_vals = []
+    freq_offsets = [] 
+    # for i in np.arange(-5,5):
+    for i in [0]:
+        # freq_mean = [] 
+        # for pp in range(num_preamble-1):
+        data_wind = np.roll(Data_stack, i) # simulate different starting frequencies 
+        # dech = np.abs(np.fft.fft(np.concatenate([(data_wind * true_sym))))
+        # dech1 = np.abs(np.fft.fft(np.concatenate([(data_wind * true_sym)]), npt*len(data_wind)))
+        dech1 = np.abs(np.fft.fft(np.concatenate([(data_wind * true_sym)]), npt*N*upsampling_factor))
+        # dech1 = np.concatenate([dech1[:npt], dech1[-npt:]])
+        dech1 = np.concatenate([dech1[-npt:],dech1[:npt]])
+        # plt.figure(2)
+        # plt.plot(dech1)
+        # plt.show()
+        
+        bin_offset = np.argmax(dech1)
+        bin_val = np.max(dech1) 
+        bin_vals.append(bin_val) 
+        if (bin_offset > npt):
+            # print("Positive offset.")
+            bin_offset =  bin_offset - npt 
+        else:
+            bin_offset = -(npt - bin_offset)
+        freq_offset = (Fs) * bin_offset/(N*upsampling_factor*npt) #* 10
+        # print("Resolution: ", (Fs) * 1/(N*upsampling_factor*npt))
+        freq_offsets.append(freq_offset) 
+        # print(bin_offset, "OFFSET")
+    freq_offset = freq_offsets[np.argmax(bin_vals)]
+    # print("Tentative frequency offset: ", freq_offset)
+        
+    return -freq_offset 
+    
+    
+def FFO_corr_sym_conj(Data_stack, SF, BW, Fs, N, sym):
+    '''
+    Determines the fine frequency offset from the received samples in Datastack to the 
+    ideal generated symbol by dechirping with an upsampled FFT with resolution Fs/M and
+    identifying a frequency offset. 
+    '''
+    upsampling_factor = int(Fs/BW)
+    # print(Fs)
+    # print(upsampling_factor)
+    # DC = np.conjugate(sym_2_css([0], N, SF, BW, Fs))
+    # true_sym = sym_2_css([sym], N, SF, BW, Fs)
+    # true_sym = np.conjugate(sym_2_css([sym], N, SF, BW, Fs))
+    true_sym = sym_2_css([sym], N, SF, BW, Fs)
+    # npt = 32
+    npt = 16
+    
+    # [TODO] Solve for base 2 number that provides the appropriate frequency resolution
+    
+    inn = []
+    bin_vals = []
+    freq_offsets = [] 
+    # for i in np.arange(-5,5):
+    for i in [0]:
+        # freq_mean = [] 
+        # for pp in range(num_preamble-1):
+        data_wind = np.roll(Data_stack, i) # simulate different starting frequencies 
+        # data_wind = np.conjugate(data_wind)
+        # dech = np.abs(np.fft.fft(np.concatenate([(data_wind * true_sym))))
+        # dech1 = np.abs(np.fft.fft(np.concatenate([(data_wind * true_sym)]), npt*len(data_wind)))
+        dech1 = np.abs(np.fft.fft(np.concatenate([(data_wind * true_sym)]), npt*N*upsampling_factor))
+        # dech1 = np.concatenate([dech1[:npt], dech1[-npt:]])
+        dech1 = np.concatenate([dech1[-npt:],dech1[:npt]])
+        # plt.figure(2)
+        # plt.plot(dech1)
+        # plt.show()
+        
+        bin_offset = np.argmax(dech1)
+        bin_val = np.max(dech1) 
+        bin_vals.append(-bin_val) 
+        if (bin_offset > npt):
+            # print("Positive offset.")
+            bin_offset =  bin_offset - npt 
+        else:
+            bin_offset = -(npt - bin_offset)
+        freq_offset = (Fs) * bin_offset/(N*upsampling_factor*npt) #* 10
+        freq_offsets.append(freq_offset) 
+        # print(bin_offset, "OFFSET")
+    freq_offset = freq_offsets[np.argmax(bin_vals)]
+    # print("Tentative frequency offset: ", freq_offset)
+        
+    return -freq_offset 

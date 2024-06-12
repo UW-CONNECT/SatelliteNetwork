@@ -78,7 +78,7 @@ class CssDemod():
         #self.FD_FINE = 100
         #self.FD_FINE = np.floor((BW/(2**SF))/2)
         #self.FD_FINE = np.floor((BW/2)//(2**SF)) 
-        self.FD_FINE = 5 # this should be based off of the number of FFT points ?
+        self.FD_FINE = self.BW/(4*N) # this should be based off of the number of FFT points ?
         
         self.FD_COARSE = 50 # for preamble detection 
         # self.FD_COARSE = 100 # for preamble detection 
@@ -105,8 +105,7 @@ class CssDemod():
         #self.REF_PREAMBLE = self.sym_to_data_ang( [1,1,1], self.N, self.UPSAMP)
         # self.REF_PREAMBLE = self.sym_2_css([1,1,1], self.N, self.SF, self.BW, self.FS) # assuming that Tx knows this
         self.REF_PREAMBLE = self.sym_2_css([0,0,0,0,0,0,0,0], self.N, self.SF, self.BW, self.FS) # assuming that Tx knows this
-        # print("Other preamble:", len(self.REF_PREAMBLE))
-        #self.REF_PREAMBLE = self.REF_PREAMBLE[:int(3*len(self.REF_PREAMBLE)/4)]
+
         self.SNR_win =self.WINDOW_SIZE*10
         self.PKT_SNR = []
         self.CR = CR
@@ -118,54 +117,46 @@ class CssDemod():
         self.POSIX_START = 0
         self.CURR_POSIX_TIME = 0 
         
+        # SuperDC for activity detection 
+        self.superDChigh = self.genSuperDC(12, self.BW, self.FS)
+        self.superDClow = self.genSuperDC(9, self.BW, self.FS)
+        
     def css_demod(self, my_channel, queue, output, queue_time): 
+        print("Starting demod.")
         if (len(self.noise_sig) == 0):
             self.noise_sig =  queue[:self.SNR_win]     # prevent nan SNR measurement
-        # print("Decoded leftlen:", len(self.LEFTOVER))
-        # print("Starting demod on a new queue", len(queue), "N decoded:", self.PACKETS_DECODED)
-        
         if (self.QUEUE_CNT == 0):
             self.POSIX_START = queue_time 
         self.QUEUE_CNT = self.QUEUE_CNT + 1
 
         freq_shift = self.doppler_cum
-        # print("Cum dop:", freq_shift)
         self.t = np.linspace(0, len(queue)/self.FS, len(queue))
-        # queue = np.array(queue)
-        leftover_phase = 0
-        if (len(self.LEFTOVER) > 0):    # noise samples will have a significant phase difference 
-            # print("Leftover phase.")
-            leftover_phase = np.angle(self.LEFTOVER[-1])
-            # print(abs(np.angle(queue[0]) - leftover_phase))
-            # print(np.angle(queue[11])-np.angle(queue[10]))
-            # plt.figure(99)
-            # plt.plot(np.angle(queue[0:1000]))
-            # plt.show()
-        # queue = queue * np.exp(1j * ((2 * math.pi * freq_shift * self.t)+ leftover_phase - np.angle(queue[0])))   #tentatively adding leftover phase for random errors 
-                
         queue = np.concatenate((self.LEFTOVER, queue))
         self.LEFTOVER = [] # some symbols or preambles carry over into the next item 
-        # print("Leftover phase", leftover_phase)
-        # print("Starting demod on a new queue", len(queue), "N decoded:", self.PACKETS_DECODED)
-        # if ((False == self.PACKET_DETECTED) and len(queue) <= self.FS):
         self.CURR_POSIX_TIME = queue_time
         
         queue_idx = 0 
         # while (len(self.PREV_QUEUE) > self.WINDOW_SIZE): 
         while (queue_idx < (len(queue)-self.WINDOW_SIZE)): 
-            if (self.PREAMBLE_DEMOD == False and queue_idx < (len(queue)-(len(self.REF_PREAMBLE) + self.WINDOW_SIZE*2))and self.PACKET_DETECTED):
+            # if (self.PREAMBLE_DEMOD == False and queue_idx < (len(queue)-(len(self.REF_PREAMBLE) + self.WINDOW_SIZE*2))and self.PACKET_DETECTED):
+            if (self.PREAMBLE_DEMOD == False and queue_idx < (len(queue)-(len(self.REF_PREAMBLE) + self.WINDOW_SIZE*4))and self.PACKET_DETECTED):
                 # demodulate the preamble, carried over from previous (idx 1)
                 while (self.PREAMBLE_DEMOD == False and len(self.possible_idx) > 0):
                     possible_idx = self.possible_idx.pop(0)
                     possible_dop = self.possible_doppler_shifts.pop(0)
+                                        
                     possible_idx, possible_dop = self.check_doppler_preamble(self.N, self.FS, self.SF, self.BW, 9, self.WINDOW_SIZE, queue,possible_idx)
                     # possible_idx = possible_idx + shift 
                     end_preamble_dx = possible_idx + len(self.REF_PREAMBLE) + self.WINDOW_SIZE*4 #todo [sub in automatic length]
-                    # print("Attempting preamble demod. Possible idx:", possible_idx, "possible doppler:", possible_dop)
-                    self.PREAMBLE_DEMOD, self.PACKET_LEN, freq_shift,idx_shift = self.demod_preamble(queue[possible_idx-3:end_preamble_dx+3], self.REF_PREAMBLE, self.WINDOW_SIZE, self.FS, -possible_dop, self.FD_COARSE, self.FD_FINE,self.N,self.SF,self.BW)
-                    # freq_shift = 0 # remove 
-                    # print("demod status:", self.PREAMBLE_DEMOD, self.PACKET_LEN, freq_shift)
+                    
+                    if (end_preamble_dx > len(queue) or possible_idx < 0): # 6/5/2024 change this possible 
+                        print("Breaking")
+                        possible_idx = queue_idx # may need to re-do pkt detection?
+                        break;
                                         
+                    # print("Attempting preamble demod. Possible idx:", possible_idx, "possible doppler:", possible_dop)
+                    self.PREAMBLE_DEMOD, self.PACKET_LEN, freq_shift,idx_shift = self.demod_preamble(queue[possible_idx-3:end_preamble_dx+14], self.REF_PREAMBLE, self.WINDOW_SIZE, self.FS, -possible_dop, self.FD_COARSE, self.FD_FINE,self.N,self.SF,self.BW)
+                              
                     # demod_status, packet_len, freq_shift
                     if (self.PREAMBLE_DEMOD):
                         self.END_COUNTER = 0 
@@ -176,13 +167,20 @@ class CssDemod():
                         # calculate SNR if packet detected 
                         # ds_factor = int(self.WINDOW_SIZE / (self.N * 10))  
                         ds_factor = self.UPSAMP
-                        noise_sig = scipy.signal.decimate(self.noise_sig, ds_factor)
+                        print("Noise sig len:", len(self.noise_sig))
+                        # noise_sig = scipy.signal.decimate(self.noise_sig, ds_factor)
+                        noise_sig = self.noise_sig[::ds_factor]
+                        
+                        print("Noise sig len:", len(noise_sig))
                         # noise_sig = self.noise_sig
                         SNR_win = self.SNR_win
                         # signal_sig = queue[possible_idx:possible_idx+SNR_win]
                         tt = np.arange(0, SNR_win)/self.FS
-                        signal_sig = queue[possible_idx:possible_idx+SNR_win]* np.exp(1j * 2 * math.pi * self.doppler_cum * tt)
-                        signal_sig = scipy.signal.decimate(signal_sig, ds_factor)                        
+                        signal_sig = queue[possible_idx:possible_idx+SNR_win]* np.exp(1j * 2 * math.pi * self.doppler_cum * tt).transpose()
+                        
+                        # signal_sig = scipy.signal.decimate(signal_sig, ds_factor)
+                        signal_sig = signal_sig[::ds_factor]                        
+
                         self.PKT_SNR = self.calc_SNR(signal_sig, noise_sig)
                         print("SNR For this packet:",self.PKT_SNR, "Init freq shift: ", freq_shift, "Packet len:", self.PACKET_LEN)
                         
@@ -191,19 +189,11 @@ class CssDemod():
                 # print("Out of pkt detection")
                 if (self.PREAMBLE_DEMOD == False):
                     self.PACKET_DETECTED = False
-                    # update queue idx so that we do not repeatedly try the same section 
-                    # plt.figure(1)
-                    # plt.plot(queue) 
-                    # plt.axvline(possible_idx)
-                    # plt.show()
-                    queue_idx = possible_idx + len(self.REF_PREAMBLE) + self.WINDOW_SIZE*4 
+                    print("Indices incorrect.", possible_idx)
+                    # queue_idx = possible_idx + len(self.REF_PREAMBLE) + self.WINDOW_SIZE*4 
+                    break
                 else: 
                     queue_idx = possible_idx + len(self.REF_PREAMBLE) + self.WINDOW_SIZE*4 +idx_shift-3
-                    
-                    # plt.figure(80)
-                    # plt.plot(10*np.log10(abs(queue)))
-                    # plt.axvline(x=possible_idx)
-                    # plt.show()
             elif self.PREAMBLE_DEMOD and self.PACKET_DETECTED:
                 '''
                 Decode symbols until the packet is exhausted 
@@ -212,42 +202,19 @@ class CssDemod():
                     # sym = self.symbol_demod_sig(queue[queue_idx:queue_idx+self.WINDOW_SIZE])
                     tt = np.arange(0, self.WINDOW_SIZE)/self.FS
                     
-                    # if (self.PACKETS_DECODED == 42 and self.TOTAL_PKT_CNT == 9): # TEST ONLY, STILL HAVE AN ISSUE WITH SHIFTING> 
-                        # tt_tmp = np.arange(0, self.WINDOW_SIZE+6)/self.FS
-                        # sym = self.symbol_demod_sig2(queue[queue_idx-3:queue_idx+3+self.WINDOW_SIZE]* np.exp(1j * 2 * math.pi * self.doppler_cum * tt_tmp))
-                    # else:
                     sym = self.symbol_demod_sig(queue[queue_idx:queue_idx+self.WINDOW_SIZE]* np.exp(1j * 2 * math.pi * self.doppler_cum * tt))
-                    # sym_peaks=[]
-                    # peak_dx = np.arange(-3,3)
-                    # pos_syms = []
-                    # for i in peak_dx:                    
-                        # # print(len(queue[queue_idx+i:queue_idx+i+self.WINDOW_SIZE]))
-                        # [sym, peak] = self.symbol_demod_sig2(queue[queue_idx+i:queue_idx+i+self.WINDOW_SIZE]* np.exp(1j * 2 * math.pi * self.doppler_cum * tt))
-                        # pos_syms.append(sym)
-                        # sym_peaks.append(peak) 
-                    # sym_dx = np.argmax(sym_peaks)
-                    # sym = pos_syms[sym_dx]
-                    
-                    # if (sym != self.GND_TRUTH_PKT[self.PACKETS_DECODED]):
-                        # print("Mismatched symbol:", sym, self.GND_TRUTH_PKT[self.PACKETS_DECODED], queue_idx,"n decodeD:",self.PACKETS_DECODED)
-                    # print("Current symbol:", sym, self.doppler_cum)
+
                     # get a new fine-grained doppler estimate  sym_2_css(self, symbol, N, SF, BW, Fs)
                     reference = self.sym_2_css([sym], self.N, self.SF, self.BW, self.FS)
                     t_queue = np.arange(0, len(queue))/self.FS
                     freq_lin = self.BW / (self.N)
-                    # f_shift_new = self.get_doppler_symbol(reference, queue[queue_idx:queue_idx+self.WINDOW_SIZE]* np.exp(1j * 2 * math.pi * self.doppler_cum * tt), freq_lin,self.FD_FINE,t_queue)
-                    f_shift_new = 0
-                    # queue = queue * np.exp(1j * 2 * math.pi * f_shift_new * t_queue)
+                    f_shift_new = FFO_corr_sym(queue[queue_idx:queue_idx+self.WINDOW_SIZE]* np.exp(1j * 2 * math.pi * self.doppler_cum * tt), self.SF, self.BW, self.FS, self.N, sym)
+                    
                     self.doppler_cum = self.doppler_cum + f_shift_new
                     
                     self.OUTPUT_PKT.append(sym)
                     self.PACKETS_DECODED = self.PACKETS_DECODED+1
-                    
-                    # if (self.PACKETS_DECODED == 47 and self.TOTAL_PKT_CNT == 3):
-                    # if (self.PACKETS_DECODED == 42 and self.TOTAL_PKT_CNT == 9):    # error at .006
-                        # plt.figure(97)
-                        # plt.plot(abs(queue[queue_idx:queue_idx+self.WINDOW_SIZE]* np.exp(1j * 2 * math.pi * self.doppler_cum * tt)))
-                        # plt.show()
+
                 elif (self.END_COUNTER < len(self.END_DELIMETER)): 
                     # count the end delimeter 
                     # check_sym = self.symbol_demod_sig(queue[queue_idx:queue_idx+self.WINDOW_SIZE])
@@ -275,20 +242,32 @@ class CssDemod():
                     # self.doppler_cum = 0 # no reason to propagate this if the duty cycle is too long  
                 queue_idx = queue_idx + self.WINDOW_SIZE 
             # elif ((queue_idx) <  3*(len(self.REF_PREAMBLE)+self.WINDOW_SIZE*3+  1001)):  # ((num_preamble)*self.WINDOW_SIZE)+self.WINDOW_SIZE*2 + ind +  nshifts
-            elif ((queue_idx) <  int(self.FS/4)):   # this should be half of RAW_FS in rx_stream_experiment
+            elif ((queue_idx) <  int(self.FS/2)):   # this should be half of RAW_FS in rx_stream_experiment
                 possible_idx = np.array([])
-                possible_idx, possible_doppler_shifts = self.pkt_detection(queue[queue_idx:], SF=self.SF, BW=self.BW, FS=self.FS, num_preamble=9)
+                possible_doppler_shifts = np.array([])
+                print("Starting packet detection.")
+                # possible_idx, possible_doppler_shifts = self.pkt_detection(queue[queue_idx:], SF=self.SF, BW=self.BW, FS=self.FS, num_preamble=9)
+
+                min_idx, max_idx = self.activity_detection(queue[queue_idx:],BW=self.BW, FS=self.FS)
                 
-                # print("dd",len(possible_idx), len(possible_doppler_shifts))
-                # no longer need to do xcorr here - should be precise anyways! 
+                if (len(min_idx) > 0):  # suggests there is a packet, go thru indices
+                    for SF in [7,8,9]:
+                        possible_idx_t, possible_doppler_shifts_t = self.pkt_detection(queue[queue_idx+min_idx[0]:queue_idx+max_idx[0]], SF, BW=self.BW, FS=self.FS, num_preamble=9)
+                        
+                        # non-zero packet detection, set the SF and proceed as usual. 
+                        if len(possible_idx_t) > 0: 
+                            self.SF = SF 
+                            # print("Current SF: ", SF, "Len: ", len(possible_idx_t))
+                            possible_idx = list(np.array(possible_idx_t) + min_idx[0])
+                            # print("Current SF: ", SF, "Len: ", possible_idx_t, len(possible_idx))
+                            possible_doppler_shifts = possible_doppler_shifts_t
+                # print(len(possible_idx),"ss")
                 if len(possible_idx) > 0:          
                     self.PACKET_DETECTED = True
                     self.PREAMBLE_DEMOD = False
                     
-                    self.possible_idx = possible_idx   
+                    self.possible_idx = possible_idx
                     self.possible_doppler_shifts = possible_doppler_shifts
-                    # print("Possible indices:", possible_idx)
-                    
                     if (possible_idx[0] + queue_idx > self.SNR_win):
                         self.noise_sig = queue[possible_idx[0] + queue_idx-self.SNR_win:possible_idx[0] + queue_idx]
                         # print("new noise sig:", len(self.noise_sig))
@@ -303,11 +282,46 @@ class CssDemod():
         
         self.LEFTOVER = queue[queue_idx:]
         self.PREV_QUEUE = []
+    def activity_detection(self, Rx_Buffer, BW, FS): 
+        '''
+        Uses superDC to find energy associated with any chirp to provide an estimate location for 
+        later packet detection. 
+        '''
+        upsampling_factor = int(FS / BW)
+        Pream_ind = []
+        gain_history = []
+        g_idx = []
+        # for window in [self.superDChigh,self.superDClow]:
+        for window in [self.superDClow]:
+            win_size = len(window)
+            loop = 0
+            for off in range(3):
+                offset = off * win_size // 3
+                loop = Rx_Buffer.size // (win_size) - 1
+                for i in range(loop):
+                    temp_wind_fft = abs(
+                        np.fft.fft(Rx_Buffer[(i * win_size) + offset:
+                                             ((i + 1) * win_size) + offset] * np.conjugate(window), axis=0))
+                    
+                    noise_floor = np.mean(temp_wind_fft)
+                    
+                    fft_peak = np.max(temp_wind_fft)
+                    
+                    peak_gain = 10 * math.log10(fft_peak/noise_floor) 
+                    gain_history.append(peak_gain)
+                    g_idx.append(i*win_size)
+                    if peak_gain > 8: 
+                        Pream_ind.append(i*win_size)
+      
+        # # Synchronization
+        Pream_ind.sort()
         
+        if len(Pream_ind)>0:
+            return [min(Pream_ind)], [max(Pream_ind) ]
+        else: 
+            return [], []
     def pkt_detection(self, Rx_Buffer, SF, BW, FS,  num_preamble):
         upsampling_factor = int(FS / BW)
-        # upsampling_factor = 10
-        # print("Upsampling factor:", upsampling_factor)
         N = int(2 ** SF)
         num_preamble -= 1  # need to find n-1 total chirps (later filtered by sync word)
         DC_upsamp = np.conjugate(self.sym_2_css([0],  N, SF, BW, FS))
@@ -347,11 +361,17 @@ class CssDemod():
         # # Synchronization
         Pream_ind.sort()
         
-        # print("Coarse preamb lin:", len(Pream_ind))
 
         Dop_out = Pream_ind
-        return list(Pream_ind), list(Dop_out)     
+        return list(Pream_ind), list(Dop_out)         
+        
     def check_doppler_preamble(self, N, FS, SF, BW, num_preamble, window_size, Rx_Buffer,ind):
+        '''
+        Doppler shift for a packet is likely to be larger than the chirp bandwidth,
+        in the especially in the narrowband case. 
+        
+        Dechirp successive samples and choose the FFT shift that dechirps the most energy. 
+        '''
         num_preamble = num_preamble - 1
         nshifts = N*int(FS/BW)
         shifts = np.arange(0, nshifts)
@@ -359,29 +379,34 @@ class CssDemod():
         possible_dop=0
         max_shift_arr = []
         max_bin_arr = []
+        npt=4
         for shift in shifts:
-            # shift = 0
-                
             # # do sync word detection here
             ind_win = ((num_preamble)*window_size) + ind + shift
             win2 = np.concatenate(( np.conjugate(self.sym_2_css([0], N, SF, BW, FS)),self.sym_2_css([0], N, SF, BW, FS)))
             win1 =  Rx_Buffer[ind_win-window_size:ind_win+window_size]
             
             temp_wind_fft = abs(
-                    np.fft.fft(win1 * win2, n=2*len(win2), axis=0))
+                    np.fft.fft(win1 * win2, n=2*len(win2), axis=0))                       
             b = np.argmax(temp_wind_fft)   
             max_bin_arr.append(b)
             max_shift_arr.append(temp_wind_fft[b]) 
                     
+          # increase n points for frequency resolution    
         if (len(max_shift_arr) > 0):
             ind = ind + shifts[np.argmax(max_shift_arr)] 
-            max_bin = max_bin_arr[np.argmax(max_shift_arr)]
-
-            if (max_bin > ((self.N*self.UPSAMP))):    
-                max_bin = -(2*(self.N*self.UPSAMP*2) - max_bin)
-                # print("New bin:", (self.N*self.UPSAMP),max_bin)
-            freq_shift = self.FS/2 / (self.N*self.UPSAMP*2) * max_bin
+            ind_win = ind + window_size
+            win2 = ( np.conjugate(self.sym_2_css([0], N, SF, BW, FS)))
+            win1 =  Rx_Buffer[ind_win-window_size:ind_win]
             
+            temp_wind_fft = abs(
+                    np.fft.fft(win1 * win2, n=npt*len(win2), axis=0))        
+            max_bin = np.argmax(temp_wind_fft)
+            
+            if (max_bin > ((self.N*self.UPSAMP*npt)/2)):    
+                max_bin = -((self.N*self.UPSAMP*npt) - max_bin)
+            freq_shift = self.FS * max_bin/(self.N*self.UPSAMP*npt)
+            # print(freq_shift, "freq shift preabmle", "Freq resolution: ", self.FS * 1/(self.N*self.UPSAMP*npt), "samp len:", len(win1))
             possible_dop=int(freq_shift)
             # print("Possible frequency shift:", freq_shift)
             out_preamb=ind
@@ -396,13 +421,8 @@ class CssDemod():
         # give a few samples prior to the estimated preamble location to account for fine sampling offset     
         ind = 0 
         tt = np.arange(0, len(queue))/FS 
-        # Rx_Buffer_tmp = Rx_Buffer[::upsampling_factor]
         num_preamble = 8
         idx_shift= FFO_corr(queue*np.exp(1j * 2 * math.pi * float(freq_shift1) * tt),ind, SF, BW, FS, N, num_preamble)
-        # print("F shift:", freq_shift1)
-        # plt.figure(1)   
-        # plt.plot(abs(queue[:10]))
-        # plt.show()
         queue = queue[idx_shift:]
         # print("FFO shift:", idx_shift)
         
@@ -413,28 +433,59 @@ class CssDemod():
         preamb_with_sync = np.concatenate((ref_preamble, np.conjugate(self.sym_2_css([0,0], N, SF,BW,FS))))
         preamb_candidate = queue[:len(ref_preamble)+window_size*2]
         preamb_candidate = preamb_candidate * np.exp(1j * 2 * math.pi * freq_shift1 * tp)
-        # perform fine sync, on the order of bins
-        freq_shift2 = self.get_doppler_preamble(preamb_with_sync,preamb_candidate, FD_COARSE+2*FD_FINE,FD_FINE,tp)        
         
-        freq_shift = freq_shift1         
-        # check to make sure we can demodulate the preamble. If not, something went wrong with our sync and we need to try another pt 
+        freq_shift = freq_shift1    
         ts = np.linspace(0, window_size/FS, window_size)
-        for symdx in range(0,7):
+        freq_shift2 = FFO_corr_sym(queue[window_size*(0):window_size*(0+1)] * np.exp(1j * 2 * math.pi * freq_shift * ts), self.SF, self.BW, self.FS, self.N, 0)
+        # print("Init fine f shift: " , freq_shift2)
+        freq_shift = freq_shift + freq_shift2
+        
+        # check to make sure we can demodulate the preamble. If not, something went wrong with our sync and we need to try another pt 
+        
+        for symdx in range(0,8):
             # print(self.symbol_demod_sig(self.PREV_QUEUE[self.WINDOW_SIZE*(symdx):self.WINDOW_SIZE*(symdx+1)]))
+            # sym_win = queue[window_size*(symdx):window_size*(symdx+1)] * np.exp(1j * 2 * math.pi * freq_shift1 * ts)
             sym_win = queue[window_size*(symdx):window_size*(symdx+1)] * np.exp(1j * 2 * math.pi * freq_shift * ts)
-            if (self.symbol_demod_sig(sym_win) != 0):
+            
+            dem_sym = self.symbol_demod_sig(sym_win) 
+            freq_shift2 = FFO_corr_sym(sym_win, self.SF, self.BW, self.FS, self.N, 0)
+            # print("New f shift: " , freq_shift2)
+            freq_shift = freq_shift + freq_shift2
+            if (dem_sym != 0):
                 print("Sync or doppler correction is incorrect.",self.symbol_demod_sig(sym_win))
+                print("Sym dx: ", symdx)
                 demod_status = False
-                return demod_status, 0, 0,0
+                return demod_status, 0,0,0             
+                
         t = ts = np.linspace(0, len(queue)/FS, len(queue))
-        queue = queue * np.exp(1j * 2 * math.pi * freq_shift * t)   
+        # queue = queue * np.exp(1j * 2 * math.pi * freq_shift * t)   
         self.OUTPUT_PKT = []
         end_preamb_dx = 2*window_size+len(ref_preamble)
-                            
-        pkt_len_2 = self.symbol_demod_sig(queue[end_preamb_dx:end_preamb_dx+window_size])
-                       
-        pkt_len_1 = self.symbol_demod_sig(queue[end_preamb_dx+window_size:end_preamb_dx+2*window_size])
-                
+        
+        # doppler hidden by the two upchirps here ... 
+        # the down chirps also accumulate frequency shifts 
+        freq_shift2 = FFO_corr_sym_conj(queue[len(ref_preamble):(len(ref_preamble))+window_size]* np.exp(1j * 2 * math.pi * freq_shift * t[:window_size]), self.SF, self.BW, self.FS, self.N, 0)
+        # print("-!New f shift: " , freq_shift2)
+        freq_shift = freq_shift+ freq_shift2
+        
+        freq_shift2 = FFO_corr_sym_conj(queue[(len(ref_preamble))+window_size:(len(ref_preamble))+2*window_size]* np.exp(1j * 2 * math.pi * freq_shift * t[:window_size]), self.SF, self.BW, self.FS, self.N, 0)
+        # print("-!New f shift: " , freq_shift2)
+        freq_shift = freq_shift+ freq_shift2
+
+        
+        # freq_shift = freq_shift + freq_shift2        
+        pkt_len_2 = self.symbol_demod_sig(queue[end_preamb_dx:end_preamb_dx+window_size]* np.exp(1j * 2 * math.pi * freq_shift * t[:window_size]) )  
+            
+        freq_shift2 = FFO_corr_sym(queue[end_preamb_dx:end_preamb_dx+window_size]* np.exp(1j * 2 * math.pi * freq_shift * t[:window_size]), self.SF, self.BW, self.FS, self.N, pkt_len_2)
+        # print("-New f shift: " , freq_shift2)
+        freq_shift = freq_shift+ freq_shift2
+            
+        pkt_len_1 = self.symbol_demod_sig(queue[end_preamb_dx+window_size:end_preamb_dx+2*window_size]* np.exp(1j * 2 * math.pi * freq_shift * t[:window_size]))
+        
+        freq_shift2 = FFO_corr_sym(queue[end_preamb_dx+window_size:end_preamb_dx+2*window_size]* np.exp(1j * 2 * math.pi * freq_shift * t[:window_size]), self.SF, self.BW, self.FS, self.N, pkt_len_1)
+        # print("-New f shift: " , freq_shift2)
+        freq_shift = freq_shift+ freq_shift2       
+                        
         #[TODO] : What if other candidate IDXs lie within this, and this sync is just a bit off? Need to not remove the pts then
         packet_len =  pkt_len_2 + N*pkt_len_1
         if (packet_len > 1000):
@@ -484,46 +535,24 @@ class CssDemod():
         dechirped = data_fft
     
         freq_bin = np.argmax(dechirped)    
-        
-                        
-        return freq_bin        
-    def symbol_demod_sig2(self,sig_tmp):
-        '''
-        Demodulates a CSS symbol and returns the frequency bin 
-        at which the symbol appears.
-        '''        
-        freq_bin_list = [] 
-        freq_bin_list_val = [] 
-        for i in range(6):
-            trans_upchirp = np.conjugate(self.UPCHIRP)
-            
-            # trans_upchirp = trans_upchirp[::10]
-            dechirped = sig_tmp[i:i+len(trans_upchirp)] * trans_upchirp
-                    
-            dechirped = np.squeeze(dechirped)
-
-            # dechirped = dechirped[::10]
-
-            data_fft = abs(np.fft.fft(dechirped)).transpose()
-            
-            dechirped = np.concatenate((data_fft[:int(self.N/2)], \
-                 data_fft[-int(self.N/2):]))
-        
-            freq_bin_tmp = np.argmax(dechirped)    
-            freq_bin_val = max(dechirped) 
-            # print("freq_bin_val", freq_bin_val, "demod",freq_bin_tmp)
-            freq_bin_list.append(freq_bin_tmp)
-            freq_bin_list_val.append(freq_bin_val)
-        freq_bin = freq_bin_list[np.argmax(freq_bin_list_val)]
-            
-        return freq_bin#, max(dechirped) 
+                                
+        return freq_bin
 
     def create_upchirp(self):
         '''
         Create an upchirp which is used to demodulate the symbols 
         '''
         return self.sym_2_css([0], self.N, self.SF, self.BW, self.FS)
-        
+    
+    def genSuperDC(self, SF, BW, FS): 
+        '''
+        Generate a super downchirp consissting of SF, SF-1, and SF-2 chirps 
+        '''
+        # print(len(np.tile(self.sym_2_css([0], N, SF, BW, FS),1)),len(np.tile(self.sym_2_css([0], N, SF-1, BW, FS),2)))
+        return np.tile(self.sym_2_css([0], 2**(SF), SF, BW, FS),1) + \
+        np.tile(self.sym_2_css([0], 2**(SF-1), SF-1, BW, FS),2) + \
+        np.tile(self.sym_2_css([0], 2**(SF-2), SF-2, BW, FS),4)
+    
     def sym_2_css(self, symbol, N, SF, BW, Fs): 
         '''
         sym_2_css :: Modulates a symbol between (0,N-1) to a chirp  
@@ -533,6 +562,11 @@ class CssDemod():
         BW = Bandwidth sweep of the chirp -BW/2 to BW/2 
         Fs = Sampling rate
         '''
+        
+        if (N != 2**SF): 
+            return
+        
+        N = 2**SF
         sym_out = []
         
         # Fs/Bw is upsamp...

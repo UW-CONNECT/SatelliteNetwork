@@ -97,7 +97,7 @@ class simpleRx_plusDoppler_simulation(gr.top_block, Qt.QWidget):
             block_tags=False)
         self.blocks_throttle2_1 = blocks.throttle( gr.sizeof_gr_complex*1, samp_rate, True, 0 if "auto" == "auto" else max( int(float(0.1) * samp_rate) if "auto" == "time" else int(0.1), 1) )
         self.blocks_multiply_xx_6 = blocks.multiply_vcc(1)
-        self.blocks_multiply_const_vxx_1 = blocks.multiply_const_cc(.003)
+        self.blocks_multiply_const_vxx_1 = blocks.multiply_const_cc(.005)
         self.blocks_file_source_8 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\SatelliteNetwork-main\\simpleTX_sim\\doppler_sim_scripts\\doppler_sync_testing', False, 0, 0)
         self.blocks_file_source_8.set_begin_tag(pmt.PMT_NIL)
         self.blocks_file_source_0_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\experiment_data_june\\SF_7N_128BW_2500FS_200000NPKTS_25PLEN_100CR_0\\trial1', False, 0, 0)

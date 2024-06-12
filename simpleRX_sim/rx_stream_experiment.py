@@ -43,32 +43,47 @@ with open(gnd_truth_data,'rb') as f:
 ############################### Variables ###############################
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
-# RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
-RAW_FS = 1000000           # value should be kept <= expected length, so that we don't miss empty space
+RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
+# RAW_FS = 3000000           # value should be kept <= expected length, so that we don't miss empty space
 # RAW_FS=1250000
 LORA_CHANNELS = [1]  # channels to process
 
 UPSAMPLE_FACTOR = 4             		# factor to downsample to
 #OVERLAP = 10 * UPSAMPLE_FACTOR#int(10 * RAW_FS / BW)
 OVERLAP = 0
-
-# CSS Specifics to be known ahead of time
-#SF = 9
-#N = 2**SF
-#UPSAMP = 10;
-#print(SF, N, UPSAMP)
-#PREAMBLE_SZ = int(len(preamble)/2)*N*UPSAMP
-#PREAMBLE_SZ = 3*N*UPSAMP
-# FS = 200000
 FS =200000
+# Downsample the received signal to just the signal components of interest to lighten computation
+GNURADIO_FS = 200000
+DOPPLER_MAX = 18000
+PRE_DOWNSAMP_FS =  (BW + DOPPLER_MAX)
+
+PRE_DOWNSAMP = 1
+# print(UPSAMP)
+# UPSAMP = int(FS/BW)
+# print("UPSAMP AFTER:", UPSAMP)
+if (UPSAMP > 10):
+    PRE_DOWNSAMP = int(FS/PRE_DOWNSAMP_FS) 
+    # print(PRE_DOWNSAMP) 
+    # some requirement for downsampling 
+    # can't downsample by an invalid integer 
+    while (FS % PRE_DOWNSAMP != 0):
+        PRE_DOWNSAMP = PRE_DOWNSAMP - 1 
+    # print("Initial Downsampling factor before processing: ", PRE_DOWNSAMP, "Into: ", FS/PRE_DOWNSAMP)
+    # PRE_DOWNSAMP = 5
+    FS = FS/PRE_DOWNSAMP 
+else: 
+    PRE_DOWNSAMP = 2
+    FS = FS/PRE_DOWNSAMP
+# PRE_DOWNSAMP = 10
 # UPSAMP = int(RAW_FS/BW)
 UPSAMP = int(FS/BW)
+# print("USAMP:", UPSAMP)
 # UPSAMP = 10
 PREAMBLE_SZ = 1*N*UPSAMP
 # PREAMBLE_SZ = 1*N*(RAW_FS/BW)
 # PREAMBLE_SZ = int(1*N*(RAW_FS/BW))
 END_DELIMITER = end_delimeter
-
+print("Downsampling the received signal: ", PRE_DOWNSAMP)
 # Threshold envelope; at what power level do we expect to see a packet arrive? 
 # For low power scenario, this will have to be substituted 
 #self.DB_THRESH = -13 # simulation with .005 noise voltage
@@ -140,7 +155,10 @@ def IQ_SOURCE(chan, chan_num):
                     xl =len(tmp)
                     tmp = final[int(RAW_FS):]                               # get overlap
                     final = final[0:int(RAW_FS)]
-                    chan.put((final, time.time()))
+                    
+                    # decimate the signal to BW + DOPPLER MAX to quicken computation (especially in small BW case) 
+                    # chan.put((final, time.time()))
+                    chan.put((final[::PRE_DOWNSAMP], time.time()))
                     recver = list()
                     counter = len(tmp) * 8
                     atime += 1
