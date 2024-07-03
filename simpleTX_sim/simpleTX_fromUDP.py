@@ -25,14 +25,13 @@ from gnuradio import qtgui
 from gnuradio.filter import firdes
 import sip
 from gnuradio import blocks
+from gnuradio import channels
 from gnuradio import gr
 import sys
 import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
-from gnuradio import uhd
-import time
 from gnuradio import zeromq
 
 from gnuradio import qtgui
@@ -80,21 +79,7 @@ class simpleTX_fromUDP(gr.top_block, Qt.QWidget):
         # Blocks
         ##################################################
         self.zeromq_sub_source_0 = zeromq.sub_source(gr.sizeof_gr_complex, 1, 'tcp://127.0.0.1:4444', 100, False, -1)
-        self.uhd_usrp_sink_0_0 = uhd.usrp_sink(
-            ",".join(("", "")),
-            uhd.stream_args(
-                cpu_format="fc32",
-                args='',
-                channels=list(range(0,1)),
-            ),
-            '',
-        )
-        self.uhd_usrp_sink_0_0.set_center_freq(tx_freq, 0)
-        self.uhd_usrp_sink_0_0.set_gain(70, 0)
-        self.uhd_usrp_sink_0_0.set_antenna('TX/RX', 0)
-        self.uhd_usrp_sink_0_0.set_bandwidth(samp_rate, 0)
-        self.uhd_usrp_sink_0_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_sink_0_0.set_time_unknown_pps(uhd.time_spec())
+        self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_gr_complex, 1, 'tcp://127.0.0.1:55555', 100, False, -1)
         self.qtgui_sink_x_0 = qtgui.sink_c(
             1024, #fftsize
             firdes.WIN_BLACKMAN_hARRIS, #wintype
@@ -112,6 +97,13 @@ class simpleTX_fromUDP(gr.top_block, Qt.QWidget):
         self.qtgui_sink_x_0.enable_rf_freq(False)
 
         self.top_grid_layout.addWidget(self._qtgui_sink_x_0_win)
+        self.channels_channel_model_1 = channels.channel_model(
+            noise_voltage=0.025,
+            frequency_offset=0.0,
+            epsilon=1.0,
+            taps=[1.0 + 1.0j],
+            noise_seed=0,
+            block_tags=False)
         self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
 
 
@@ -119,8 +111,9 @@ class simpleTX_fromUDP(gr.top_block, Qt.QWidget):
         ##################################################
         # Connections
         ##################################################
+        self.connect((self.blocks_throttle_0, 0), (self.channels_channel_model_1, 0))
         self.connect((self.blocks_throttle_0, 0), (self.qtgui_sink_x_0, 0))
-        self.connect((self.blocks_throttle_0, 0), (self.uhd_usrp_sink_0_0, 0))
+        self.connect((self.channels_channel_model_1, 0), (self.zeromq_pub_sink_0, 0))
         self.connect((self.zeromq_sub_source_0, 0), (self.blocks_throttle_0, 0))
 
 
@@ -134,7 +127,6 @@ class simpleTX_fromUDP(gr.top_block, Qt.QWidget):
 
     def set_tx_freq(self, tx_freq):
         self.tx_freq = tx_freq
-        self.uhd_usrp_sink_0_0.set_center_freq(self.tx_freq, 0)
 
     def get_samp_rate(self):
         return self.samp_rate
@@ -143,8 +135,6 @@ class simpleTX_fromUDP(gr.top_block, Qt.QWidget):
         self.samp_rate = samp_rate
         self.blocks_throttle_0.set_sample_rate(self.samp_rate)
         self.qtgui_sink_x_0.set_frequency_range(0, self.samp_rate)
-        self.uhd_usrp_sink_0_0.set_samp_rate(self.samp_rate)
-        self.uhd_usrp_sink_0_0.set_bandwidth(self.samp_rate, 0)
 
 
 

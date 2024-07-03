@@ -1,6 +1,7 @@
 options:
   parameters:
     author: ''
+    catch_exceptions: 'True'
     category: '[GRC Hier Blocks]'
     cmake_opt: ''
     comment: ''
@@ -10,7 +11,7 @@ options:
     gen_linking: dynamic
     generate_options: qt_gui
     hier_block_src_path: '.:'
-    id: simpleRx_plusDoppler_simulation
+    id: simpleRx
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -27,7 +28,7 @@ options:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [-2, 10]
+    coordinate: [8, 8]
     rotation: 0
     state: enabled
 
@@ -36,85 +37,48 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 200e3
+    value: '200000'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [248, 23]
+    coordinate: [248, 24.0]
     rotation: 0
     state: enabled
-- name: variable_low_pass_filter_taps_0
-  id: variable_low_pass_filter_taps
-  parameters:
-    beta: '6.76'
-    comment: ''
-    cutoff_freq: samp_rate/4
-    gain: '1.0'
-    samp_rate: samp_rate
-    width: samp_rate/8
-    win: firdes.WIN_HAMMING
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [463, 13]
-    rotation: 0
-    state: true
-- name: FrequencyShifter_0
-  id: FrequencyShifter
+- name: blocks_file_sink_0
+  id: blocks_file_sink
   parameters:
     affinity: ''
     alias: ''
+    append: 'False'
     comment: ''
-    frequency: '0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samp_rate: samp_rate
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [360, 363]
-    rotation: 0
-    state: enabled
-- name: analog_const_source_x_0
-  id: analog_const_source_x
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    const: '1'
-    maxoutbuf: '0'
-    minoutbuf: '0'
+    file: Z:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_128BW_5000FS_200000NPKTS_25PLEN_100CR_3\rx_data_small
     type: complex
+    unbuffered: 'False'
+    vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [24, 406]
+    coordinate: [632, 20.0]
     rotation: 0
     state: disabled
-- name: analog_sig_source_x_0
-  id: analog_sig_source_x
+- name: blocks_file_sink_1
+  id: blocks_file_sink
   parameters:
     affinity: ''
     alias: ''
-    amp: '1'
+    append: 'False'
     comment: ''
-    freq: '10'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    offset: '0'
-    phase: '0'
-    samp_rate: samp_rate
+    file: J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_9N_512BW_20000FS_200000NPKTS_10PLEN_100\chan035
     type: complex
-    waveform: analog.GR_COS_WAVE
+    unbuffered: 'False'
+    vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [-1, 193]
+    coordinate: [729, 335]
     rotation: 0
     state: disabled
 - name: blocks_file_source_0
@@ -124,7 +88,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleTX_sim\doppler_sim_scripts\1Hz_doppler_slope
+    file: C:\Users\Patron\Downloads\SF_7_128B_2500FS_200000NPKTS_50_PLEN100CR_0_RAWDATA
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -136,32 +100,10 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [7, 314]
+    coordinate: [72, 196.0]
     rotation: 0
     state: enabled
-- name: blocks_file_source_0_0
-  id: blocks_file_source
-  parameters:
-    affinity: ''
-    alias: ''
-    begin_tag: pmt.PMT_NIL
-    comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\experiment_data_JUNE17\SF_7N_128BW_2500FS_200000NPKTS_50PLEN_100CR_0\trial1
-    length: '0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    offset: '0'
-    repeat: 'True'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [33, 103]
-    rotation: 0
-    state: enabled
-- name: blocks_multiply_const_vxx_1
+- name: blocks_multiply_const_vxx_0
   id: blocks_multiply_const_vxx
   parameters:
     affinity: ''
@@ -176,25 +118,49 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [196, 267]
+    coordinate: [424, 300.0]
     rotation: 0
-    state: enabled
-- name: blocks_multiply_xx_0
-  id: blocks_multiply_xx
+    state: disabled
+- name: blocks_throttle2_0
+  id: blocks_throttle2
   parameters:
     affinity: ''
     alias: ''
     comment: ''
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
     maxoutbuf: '0'
     minoutbuf: '0'
-    num_inputs: '2'
+    samples_per_second: samp_rate
     type: complex
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [224, 332]
+    coordinate: [472, 88.0]
+    rotation: 0
+    state: disabled
+- name: blocks_throttle2_1
+  id: blocks_throttle2
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [376, 456.0]
     rotation: 0
     state: enabled
 - name: blocks_throttle_0
@@ -213,10 +179,29 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [268, 135]
+    coordinate: [248, 404.0]
     rotation: 0
-    state: true
-- name: channels_channel_model_1
+    state: disabled
+- name: blocks_udp_sink_0_0
+  id: blocks_udp_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    eof: 'False'
+    ipaddr: 127.0.0.1
+    port: '4900'
+    psize: '32768'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [877, 216]
+    rotation: 0
+    state: disabled
+- name: channels_channel_model_0
   id: channels_channel_model
   parameters:
     affinity: ''
@@ -227,17 +212,35 @@ blocks:
     freq_offset: '0.0'
     maxoutbuf: '0'
     minoutbuf: '0'
-    noise_voltage: '0.025'
+    noise_voltage: '0.035'
     seed: '0'
     taps: 1.0 + 1.0j
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [375, 222]
+    coordinate: [848, 264.0]
     rotation: 0
-    state: true
-- name: qtgui_sink_x_1
+    state: disabled
+- name: gpredict_doppler_0
+  id: gpredict_doppler
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    gpredict_host: 127.0.0.1
+    gpredict_port: '7356'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    verbose: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1032, 160.0]
+    rotation: 0
+    state: disabled
+- name: qtgui_sink_x_0
   id: qtgui_sink_x
   parameters:
     affinity: ''
@@ -258,22 +261,25 @@ blocks:
     showports: 'False'
     showrf: 'False'
     type: complex
-    wintype: firdes.WIN_BLACKMAN_hARRIS
+    wintype: window.WIN_BLACKMAN_hARRIS
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [560, 204]
+    coordinate: [744, 84.0]
     rotation: 0
-    state: true
+    state: enabled
 - name: zeromq_pub_sink_0
   id: zeromq_pub_sink
   parameters:
     address: tcp://127.0.0.1:55555
     affinity: ''
     alias: ''
+    bind: 'True'
     comment: ''
+    drop_on_hwm: 'True'
     hwm: '-1'
+    key: ''
     pass_tags: 'False'
     timeout: '100'
     type: complex
@@ -282,21 +288,24 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [560, 311]
+    coordinate: [632, 292.0]
     rotation: 0
     state: enabled
 
 connections:
-- [FrequencyShifter_0, '0', blocks_throttle_0, '0']
-- [analog_const_source_x_0, '0', blocks_multiply_xx_0, '1']
-- [analog_sig_source_x_0, '0', blocks_multiply_const_vxx_1, '0']
-- [blocks_file_source_0, '0', blocks_multiply_xx_0, '1']
-- [blocks_file_source_0_0, '0', blocks_multiply_const_vxx_1, '0']
-- [blocks_multiply_const_vxx_1, '0', blocks_multiply_xx_0, '0']
-- [blocks_multiply_xx_0, '0', FrequencyShifter_0, '0']
-- [blocks_throttle_0, '0', channels_channel_model_1, '0']
-- [channels_channel_model_1, '0', qtgui_sink_x_1, '0']
-- [channels_channel_model_1, '0', zeromq_pub_sink_0, '0']
+- [blocks_file_source_0, '0', blocks_throttle2_1, '0']
+- [blocks_multiply_const_vxx_0, '0', channels_channel_model_0, '0']
+- [blocks_multiply_const_vxx_0, '0', qtgui_sink_x_0, '0']
+- [blocks_multiply_const_vxx_0, '0', zeromq_pub_sink_0, '0']
+- [blocks_throttle2_0, '0', qtgui_sink_x_0, '0']
+- [blocks_throttle2_0, '0', zeromq_pub_sink_0, '0']
+- [blocks_throttle2_1, '0', qtgui_sink_x_0, '0']
+- [blocks_throttle2_1, '0', zeromq_pub_sink_0, '0']
+- [blocks_throttle_0, '0', blocks_multiply_const_vxx_0, '0']
+- [channels_channel_model_0, '0', blocks_file_sink_1, '0']
+- [channels_channel_model_0, '0', qtgui_sink_x_0, '0']
+- [channels_channel_model_0, '0', zeromq_pub_sink_0, '0']
 
 metadata:
   file_format: 1
+  grc_version: 3.10.9.2

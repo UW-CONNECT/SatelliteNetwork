@@ -48,7 +48,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 906e6
+    value: 433e6
   states:
     bus_sink: false
     bus_source: false
@@ -63,19 +63,38 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\experiment_data_JUNE17\SF_7N_128BW_20000FS_200000NPKTS_50PLEN_100CR_0\trial1
+    file: J:\schellberg\indoor_exp_feb_2024\experiment_data_JUNE17\SF_7N_128BW_2500FS_200000NPKTS_50PLEN_100CR_0\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
     offset: '0'
-    repeat: 'True'
+    repeat: 'False'
     type: complex
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [73, 142]
+    coordinate: [74, 141]
+    rotation: 0
+    state: true
+- name: blocks_throttle_0
+  id: blocks_throttle
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [372, 162]
     rotation: 0
     state: true
 - name: qtgui_sink_x_0
@@ -104,9 +123,24 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [466, 56]
+    coordinate: [699, 29]
     rotation: 0
     state: true
+- name: snippet_0
+  id: snippet
+  parameters:
+    alias: ''
+    code: ''
+    comment: ''
+    priority: ''
+    section: main_after_init
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1193, 150]
+    rotation: 0
+    state: disabled
 - name: uhd_usrp_sink_0
   id: uhd_usrp_sink
   parameters:
@@ -220,7 +254,7 @@ blocks:
     comment: ''
     dev_addr: '""'
     dev_args: '""'
-    gain0: '20'
+    gain0: '30'
     gain1: '0'
     gain10: '0'
     gain11: '0'
@@ -381,13 +415,14 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [443, 176]
+    coordinate: [706, 220]
     rotation: 0
     state: enabled
 
 connections:
-- [blocks_file_source_0, '0', qtgui_sink_x_0, '0']
-- [blocks_file_source_0, '0', uhd_usrp_sink_0, '0']
+- [blocks_file_source_0, '0', blocks_throttle_0, '0']
+- [blocks_throttle_0, '0', qtgui_sink_x_0, '0']
+- [blocks_throttle_0, '0', uhd_usrp_sink_0, '0']
 
 metadata:
   file_format: 1

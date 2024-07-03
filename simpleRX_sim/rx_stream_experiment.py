@@ -26,7 +26,7 @@ from matplotlib import pyplot as plt
 #exp_root_folder = 'ber_desktop_testing'
 # exp_root_folder = '../../experiment_data'
 exp_root_folder = '../../experiment_data_synced'
-exp_root_folder = '../../experiment_data_june'
+exp_root_folder = '../../experiment_data_JUNE17'
 
 f = open('../trial_under_test.txt')
 exp_folder = f.read()
@@ -52,6 +52,7 @@ UPSAMPLE_FACTOR = 4             		# factor to downsample to
 #OVERLAP = 10 * UPSAMPLE_FACTOR#int(10 * RAW_FS / BW)
 OVERLAP = 0
 FS =200000
+# FS =250000 # Min. BW for use with the rtlsdr
 # Downsample the received signal to just the signal components of interest to lighten computation
 GNURADIO_FS = 200000
 DOPPLER_MAX = 18000
@@ -72,7 +73,7 @@ if (UPSAMP > 10):
     # PRE_DOWNSAMP = 5
     FS = FS/PRE_DOWNSAMP 
 else: 
-    PRE_DOWNSAMP = 2
+    PRE_DOWNSAMP =1
     FS = FS/PRE_DOWNSAMP
 # PRE_DOWNSAMP = 10
 # UPSAMP = int(RAW_FS/BW)
@@ -101,7 +102,7 @@ FS = UPSAMP*BW
 # FS = RAW_FS
 # print("Sampling frequency:", FS)
 #DB_THRESH = -7
-DB_THRESH = -11
+# DB_THRESH = -11
 # print("Bandwidth:",BW)
 ##########################################################################
 
@@ -112,7 +113,7 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
     ###########################################################################################################
     #css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH);
     #css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH, symbols,PAYLOAD_LEN,NUMPKTS,SF);
-    css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH, symbols,PAYLOAD_LEN,NUMPKTS,SF,BW,FS,CR);
+    css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER, symbols,PAYLOAD_LEN,NUMPKTS,SF,BW,FS,CR);
     outfile = ('../simpleTX_sim/'+exp_root_folder + '/' + exp_folder + '/' + 'error_out')
     css_demodulator.setErrorMeasurementFile(outfile)
     print("Started")

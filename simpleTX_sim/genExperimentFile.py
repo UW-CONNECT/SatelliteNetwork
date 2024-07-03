@@ -18,15 +18,16 @@ import pickle
 
 # SF = 7
 # SF_list = [7,8,9]
-SF_list = [7, 8, 9]
+SF_list = [7]
 #SF = 9
 
-NUMPKTS = 25
+NUMPKTS = 50
 # BW = 20000 
 # BW_list = [5000, 10000, 20000, 50000]
 # BW_list = [5000, 10000, 20000, 40000, 50000]
 # BW_list = [2500, 10000, 20000]
-BW_list = [2500, 20000]
+# BW_list = [2500, 20000,40000]
+BW_list = [2500]
 # BW_list = [3000,5000,10000,20000]
 # BW_list = [20000]
 # print(len(BW_list))
@@ -35,6 +36,8 @@ BW_list = [2500, 20000]
 FS = 200000
 # FS = 1000000
 # FS = BW*10
+# PAYLOAD_LEN = 100
+# PAYLOAD_LEN = 5
 PAYLOAD_LEN = 100
 # CR_LIST = [0,1,2,3,4] 
 # CR_LIST = [0,3] 
@@ -49,6 +52,7 @@ preamble = [0,0,0,0,0,0,0,0]
 end_delimeter = [3,3,3,3] 
 
 trial_num_name_out = 0
+exp_root_folder = '../../experiment_data_JUNE17'
 for SF in SF_list:
     N = 2**SF
     symbols = []
@@ -62,7 +66,7 @@ for SF in SF_list:
         
         # CR = 0 # coding rate, 0 for no hamming encoding, 1-4 for other corresponding options
             # exp_root_folder = '../../experiment_data'
-            exp_root_folder = '../../experiment_data_june'
+            
             #exp_root_folder = '../../simulated_data'
             #exp_folder = str(NUMPKTS) + '_pkts_' + str(SF) + '_SF'  
             exp_folder = 'SF_' + str(SF) + 'N_' + str(N) + 'BW_' + str(BW) + 'FS_' + str(FS) +\

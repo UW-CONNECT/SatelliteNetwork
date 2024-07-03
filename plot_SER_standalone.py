@@ -10,29 +10,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import math
 
-doppler_time_file = r'J:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleTX_sim\doppler_sim_scripts\doppler_sync_testing_time.pkl'
-# output_time_vec = np.arange(0, len(output))/ FS 
-f = open(doppler_time_file,'rb')
-[doppler_ref, FS_dop] = pickle.load(f)
-doppler_ref = np.array(doppler_ref)
-doppler_ref = doppler_ref[:,0]
-# doppler_ref = np.concatenate([doppler_ref, np.flip(doppler_ref)])
-f.close()
 
-FS_dop = 100
-doppler_time_vec = np.arange(0, len(doppler_ref))/FS_dop
-print(doppler_time_vec[-1],len(doppler_ref),len(doppler_ref)/FS_dop)
-plt.figure(1)
-plt.plot(doppler_time_vec, doppler_ref)
-plt.xlabel('Time (s)')
-plt.ylabel('Doppler Shift (Hz)')
-plt.title('Doppler Shift Simulated with Middle USRP (taken from an ISS pass)')
-plt.show()
 
-plt.figure(1)
-plt.hist(np.abs(np.diff(doppler_ref[::int(FS_dop/20)])))
-plt.show()
-print("Max doppler change: ", np.abs(np.diff(doppler_ref[::int(FS_dop/20)])))
 SF = [7, 8, 9, 10, 11, 12]
 BW = 20000
 FS = 200000
@@ -59,12 +38,6 @@ f = open('trial_under_test.txt')
 test_list = [f.read()]
 f.close()
 
-# doppler Start time 
-f = open('J:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\doppler_start_time_jun23')
-d_start_time = float(f.read())
-f.close()
-
-print("Doppler start time: ", d_start_time)
 
 output_file_cnt = 0
 SNR_dx = []
@@ -83,7 +56,7 @@ for exp_folder in test_list:
             # GND_TRUTH_PKT, OUTPUT_PKT, TOTAL_PKT_CNT, PKT_SNR = pickle.load(f)
             GND_TRUTH_PKT, OUTPUT_PKT, TOTAL_PKT_CNT, PKT_SNR,CURR_POSIX_TIME = pickle.load(f)
             # rx_packet_time_vec.append(CURR_POSIX_TIME)
-            CURR_POSIX_TIME = CURR_POSIX_TIME % d_start_time 
+            CURR_POSIX_TIME = CURR_POSIX_TIME #d% d_start_time 
             rx_packet_time_vec.append(CURR_POSIX_TIME)
             if len(OUTPUT_PKT) == len(GND_TRUTH_PKT): 
                 SF_x.append(sf)                
@@ -118,22 +91,22 @@ SER_Y = SER_Y[sorted_rx_time]
 print("Total packets received:", output_file_cnt)
 print("Average SNR:", np.mean(SNR_dx))
 print("Mean SER", np.mean(SER_Y/len(GND_TRUTH_PKT)))
-doppler_indices = []
-for pt in rx_packet_time_vec: 
-    doppler_indices.append(np.argmin(abs( np.subtract(doppler_time_vec,pt))))
-dop_diff = abs(np.diff(doppler_ref)) 
+# doppler_indices = []
+# for pt in rx_packet_time_vec: 
+    # doppler_indices.append(np.argmin(abs( np.subtract(doppler_time_vec,pt))))
+# dop_diff = abs(np.diff(doppler_ref)) 
 # x = dop_diff[doppler_indices] 
-x = doppler_ref[doppler_indices] 
+# x = doppler_ref[doppler_indices] 
 
 plt.figure(1)
 plt.scatter(rx_packet_time_vec, SER_Y)
 plt.xlabel('Time (s)')
 plt.ylabel('Number of Incorrect Symbols')
 
-plt.figure(2)
-plt.plot(rx_packet_time_vec,x)
-plt.xlabel('Time (s)')
-plt.ylabel('Doppler Shift (Hz)')
-plt.show()
+# plt.figure(2)
+# plt.plot(rx_packet_time_vec,x)
+# plt.xlabel('Time (s)')
+# plt.ylabel('Doppler Shift (Hz)')
+# plt.show()
 
 nandx = np.argwhere(np.isnan(SNR_dx))

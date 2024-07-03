@@ -6,38 +6,48 @@
 #
 # GNU Radio Python Flow Graph
 # Title: Not titled yet
-# GNU Radio version: 3.10.9.2
+# GNU Radio version: v3.8.2.0-57-gd71cd177
+
+from distutils.version import StrictVersion
+
+if __name__ == '__main__':
+    import ctypes
+    import sys
+    if sys.platform.startswith('linux'):
+        try:
+            x11 = ctypes.cdll.LoadLibrary('libX11.so')
+            x11.XInitThreads()
+        except:
+            print("Warning: failed to XInitThreads()")
 
 from PyQt5 import Qt
 from gnuradio import qtgui
-from PyQt5 import QtCore
-from gnuradio import analog
-from gnuradio import gr
 from gnuradio.filter import firdes
-from gnuradio.fft import window
+import sip
+from gnuradio import blocks
+import pmt
+from gnuradio import gr
 import sys
 import signal
-from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio import uhd
 import time
-import sip
 
-
+from gnuradio import qtgui
 
 class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
+        gr.top_block.__init__(self, "Not titled yet")
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Not titled yet")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
-        except BaseException as exc:
-            print(f"Qt GUI: Could not set Icon: {str(exc)}", file=sys.stderr)
+        except:
+            pass
         self.top_scroll_layout = Qt.QVBoxLayout()
         self.setLayout(self.top_scroll_layout)
         self.top_scroll = Qt.QScrollArea()
@@ -53,24 +63,22 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
         self.settings = Qt.QSettings("GNU Radio", "TXfromFiletoZMQ")
 
         try:
-            geometry = self.settings.value("geometry")
-            if geometry:
-                self.restoreGeometry(geometry)
-        except BaseException as exc:
-            print(f"Qt GUI: Could not restore geometry: {str(exc)}", file=sys.stderr)
+            if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
+                self.restoreGeometry(self.settings.value("geometry").toByteArray())
+            else:
+                self.restoreGeometry(self.settings.value("geometry"))
+        except:
+            pass
 
         ##################################################
         # Variables
         ##################################################
-        self.tx_power_normalized = tx_power_normalized = 0
-        self.tx_freq = tx_freq = 435e6
+        self.tx_freq = tx_freq = 906e6
         self.samp_rate = samp_rate = 200e3
-        self.fine_freq_tune = fine_freq_tune = 0
 
         ##################################################
         # Blocks
         ##################################################
-
         self.uhd_usrp_sink_0 = uhd.usrp_sink(
             ",".join(("", "")),
             uhd.stream_args(
@@ -80,60 +88,45 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
             ),
             '',
         )
-        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_sink_0.set_time_unknown_pps(uhd.time_spec(0))
-
         self.uhd_usrp_sink_0.set_center_freq(tx_freq, 0)
+        self.uhd_usrp_sink_0.set_gain(20, 0)
         self.uhd_usrp_sink_0.set_antenna('TX/RX', 0)
         self.uhd_usrp_sink_0.set_bandwidth(samp_rate, 0)
-        self.uhd_usrp_sink_0.set_gain(20, 0)
-        self._tx_power_normalized_range = qtgui.Range(0, 1, .01, 0, 200)
-        self._tx_power_normalized_win = qtgui.RangeWidget(self._tx_power_normalized_range, self.set_tx_power_normalized, "'tx_power_normalized'", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.top_layout.addWidget(self._tx_power_normalized_win)
+        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_sink_0.set_time_unknown_pps(uhd.time_spec())
         self.qtgui_sink_x_0 = qtgui.sink_c(
             1024, #fftsize
-            window.WIN_BLACKMAN_hARRIS, #wintype
+            firdes.WIN_BLACKMAN_hARRIS, #wintype
             0, #fc
             samp_rate, #bw
             "", #name
             True, #plotfreq
             True, #plotwaterfall
             True, #plottime
-            True, #plotconst
-            None # parent
+            True #plotconst
         )
         self.qtgui_sink_x_0.set_update_time(1.0/10)
-        self._qtgui_sink_x_0_win = sip.wrapinstance(self.qtgui_sink_x_0.qwidget(), Qt.QWidget)
+        self._qtgui_sink_x_0_win = sip.wrapinstance(self.qtgui_sink_x_0.pyqwidget(), Qt.QWidget)
 
         self.qtgui_sink_x_0.enable_rf_freq(False)
 
-        self.top_layout.addWidget(self._qtgui_sink_x_0_win)
-        self._fine_freq_tune_range = qtgui.Range(-8000, 8000, 500, 0, 200)
-        self._fine_freq_tune_win = qtgui.RangeWidget(self._fine_freq_tune_range, self.set_fine_freq_tune, "'fine_freq_tune'", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.top_layout.addWidget(self._fine_freq_tune_win)
-        self.analog_sig_source_x_1_0 = analog.sig_source_c(samp_rate, analog.GR_COS_WAVE, 1000, 1, 0, 0)
+        self.top_grid_layout.addWidget(self._qtgui_sink_x_0_win)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\experiment_data_JUNE17\\SF_7N_128BW_20000FS_200000NPKTS_50PLEN_100CR_0\\trial1', True, 0, 0)
+        self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
+
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_sig_source_x_1_0, 0), (self.qtgui_sink_x_0, 0))
-        self.connect((self.analog_sig_source_x_1_0, 0), (self.uhd_usrp_sink_0, 0))
+        self.connect((self.blocks_file_source_0, 0), (self.qtgui_sink_x_0, 0))
+        self.connect((self.blocks_file_source_0, 0), (self.uhd_usrp_sink_0, 0))
 
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "TXfromFiletoZMQ")
         self.settings.setValue("geometry", self.saveGeometry())
-        self.stop()
-        self.wait()
-
         event.accept()
-
-    def get_tx_power_normalized(self):
-        return self.tx_power_normalized
-
-    def set_tx_power_normalized(self, tx_power_normalized):
-        self.tx_power_normalized = tx_power_normalized
 
     def get_tx_freq(self):
         return self.tx_freq
@@ -147,22 +140,19 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.analog_sig_source_x_1_0.set_sampling_freq(self.samp_rate)
         self.qtgui_sink_x_0.set_frequency_range(0, self.samp_rate)
         self.uhd_usrp_sink_0.set_samp_rate(self.samp_rate)
         self.uhd_usrp_sink_0.set_bandwidth(self.samp_rate, 0)
 
-    def get_fine_freq_tune(self):
-        return self.fine_freq_tune
-
-    def set_fine_freq_tune(self, fine_freq_tune):
-        self.fine_freq_tune = fine_freq_tune
 
 
 
 
 def main(top_block_cls=TXfromFiletoZMQ, options=None):
 
+    if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
+        style = gr.prefs().get_string('qtgui', 'style', 'raster')
+        Qt.QApplication.setGraphicsSystem(style)
     qapp = Qt.QApplication(sys.argv)
 
     tb = top_block_cls()
@@ -172,9 +162,6 @@ def main(top_block_cls=TXfromFiletoZMQ, options=None):
     tb.show()
 
     def sig_handler(sig=None, frame=None):
-        tb.stop()
-        tb.wait()
-
         Qt.QApplication.quit()
 
     signal.signal(signal.SIGINT, sig_handler)
@@ -184,6 +171,11 @@ def main(top_block_cls=TXfromFiletoZMQ, options=None):
     timer.start(500)
     timer.timeout.connect(lambda: None)
 
+    def quitting():
+        tb.stop()
+        tb.wait()
+
+    qapp.aboutToQuit.connect(quitting)
     qapp.exec_()
 
 if __name__ == '__main__':

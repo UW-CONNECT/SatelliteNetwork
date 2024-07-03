@@ -36,16 +36,16 @@ DB_THRESH = -8   # sim at .035 noise
 # filename = r'J:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleTX_sim\two_usrp_testing\sf9_20k_preamb3_ones_3\test_3ones_2_LOWNOISE'
 #filename =  r'J:\schellberg\indoor_exp_feb_2024\experiment_data\SF_7N_TX'
 filename = r'J:\schellberg\indoor_exp_feb_2024\simulated_data_SNR\sf7_noDop_SNR1-5hundredth_4dB'
-filename = r'C:\Users\schellberg\Documents\schellberg\Standard_LoRa\sf7_with_doppler'
+filename = r'C:\Users\Patron\Downloads\SF_7_128B_2500FS_200000NPKTS_50_PLEN100CR_0_RAWDATA'
 #filename = r'J:\schellberg\spurious_906MHz_10pkts_SF9' #incorrect preamble here
 #filename = r'J:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleTX_sim\two_usrp_testing\sf9_20k_preamb3_ones_3\test_3ones_2_HIGHSNR'
 
 
 #### Load data related to the experiment for BER/SNR/etc
 #exp_root_folder = 'ber_desktop_testing'
-exp_root_folder = '../../experiment_data'
+exp_root_folder = '../../experiment_data_JUNE17'
 
-exp_folder = 'SF_7N_128BW_40000FS_200000NPKTS_100PLEN_100CR_0'
+exp_folder = 'SF_7N_128BW_2500FS_200000NPKTS_50PLEN_100CR_0'
 
 trial_name = "trial1"
 #### 
@@ -64,6 +64,7 @@ def load_file(file_path):
     return x_1
     
 queue = load_file(filename)
+print(len(queue))
 # queue = queue[:int(len(queue)/9) * 2] #4e5 expected start idx
 # print(len(queue))
 # plt.figure(1)
@@ -100,7 +101,10 @@ PREAMBLE_SZ = 1*N*UPSAMP
 # PREAMBLE_SZ = 1*N*(RAW_FS/BW)
 # PREAMBLE_SZ = int(1*N*(RAW_FS/BW))
 END_DELIMITER = end_delimeter
-
+# plt.figure(1)
+# plt.plot(queue)
+# plt.show()
+# queue = queue[:4500000]
 # Threshold envelope; at what power level do we expect to see a packet arrive? 
 # For low power scenario, this will have to be substituted 
 #self.DB_THRESH = -13 # simulation with .005 noise voltage
@@ -116,10 +120,10 @@ FS = UPSAMP*BW
 # print("Sampling frequency:", FS)
 #DB_THRESH = -7
 DB_THRESH = -11
+css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER, symbols,PAYLOAD_LEN,NUMPKTS,SF,BW,FS,CR);
 
-css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH, symbols,PAYLOAD_LEN,NUMPKTS,SF,BW,FS,CR);
 output = []
-css_demodulator.css_demod([], queue, output)     
+css_demodulator.css_demod([], queue, output,0)     
 
 print(output)
 print("Done.")

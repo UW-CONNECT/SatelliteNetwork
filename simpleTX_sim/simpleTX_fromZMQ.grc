@@ -93,6 +93,27 @@ blocks:
     coordinate: [475, 270]
     rotation: 0
     state: true
+- name: channels_channel_model_1
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1.0'
+    freq_offset: '0.0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: '0.025'
+    seed: '0'
+    taps: 1.0 + 1.0j
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [461, 317]
+    rotation: 0
+    state: true
 - name: qtgui_sink_x_0
   id: qtgui_sink_x
   parameters:
@@ -675,6 +696,25 @@ blocks:
     bus_structure: null
     coordinate: [682, 243]
     rotation: 0
+    state: disabled
+- name: zeromq_pub_sink_0
+  id: zeromq_pub_sink
+  parameters:
+    address: tcp://127.0.0.1:55555
+    affinity: ''
+    alias: ''
+    comment: ''
+    hwm: '-1'
+    pass_tags: 'False'
+    timeout: '100'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [733, 410]
+    rotation: 0
     state: enabled
 - name: zeromq_pull_source_0
   id: zeromq_pull_source
@@ -741,9 +781,11 @@ blocks:
     state: true
 
 connections:
+- [blocks_throttle_0, '0', channels_channel_model_1, '0']
 - [blocks_throttle_0, '0', qtgui_sink_x_0, '0']
 - [blocks_throttle_0, '0', uhd_usrp_sink_0, '0']
 - [blocks_throttle_0, '0', uhd_usrp_sink_0_0, '0']
+- [channels_channel_model_1, '0', zeromq_pub_sink_0, '0']
 - [zeromq_pull_source_0, '0', blocks_file_sink_0, '0']
 - [zeromq_req_source_0, '0', blocks_file_sink_0, '0']
 - [zeromq_req_source_0, '0', qtgui_sink_x_0, '0']

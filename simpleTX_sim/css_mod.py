@@ -210,7 +210,7 @@ class CssMod:
             elif (CR == 4):
                 codewords.append(p1*128 | p2*64 | p5*32 | p3*16 | nib)
             else: 
-                print("Check CR ... [encode]")
+                # print("Check CR ... [encode]")
                 codewords.append(nib)
             
         return np.array(codewords) 
@@ -302,6 +302,9 @@ class CssMod:
         f_start = -BW/2 
         pi = math.pi 
     
+        # keep track of the past phase offset for phase continuity 
+        ph_start = 0
+    
         for sym in symbol: 
             st_offset = int(sym)
             t_arr = np.arange(0, spsym*(N-st_offset)/N)/Fs
@@ -317,13 +320,20 @@ class CssMod:
             ce = np.exp(1j*(ang_start + 2*pi*(t_arr*(f_start +0.5*k*t_arr)) ))
             out_sig = np.concatenate((cs, ce))
             #sym_out.append(out_sig)
+            #queue = queue * np.exp(1j * ((2 * math.pi * freq_shift * self.t)+ leftover_phase - np.angle(queue[0])))  
+            # out_sig = out_sig * np.exp(1j*(-np.angle(out_sig[0])+ ph_start )) # 6/17/24
             sym_out=np.append(sym_out,out_sig)
+            ph_start = np.angle(out_sig[-1]) # 6/17/24
+            # print(ph_start," PH")
             '''
             plt.figure(1)
             plt.specgram(out_sig) 
             plt.title('out')
             plt.show()
             '''
+        # plt.figure(1)
+        # plt.plot(sym_out)
+        # plt.show()
         return sym_out
     
     def ang2bin(self, data):
