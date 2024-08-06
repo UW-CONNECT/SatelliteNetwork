@@ -10,6 +10,8 @@
 
 from PyQt5 import Qt
 from gnuradio import qtgui
+from gnuradio import blocks
+import pmt
 from gnuradio import gr
 from gnuradio.filter import firdes
 from gnuradio.fft import window
@@ -61,7 +63,8 @@ class simpleRx(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 200000
+        self.tx_freq = tx_freq = 906.005e6
+        self.samp_rate = samp_rate = 200e3
         self.downlink_frequency = downlink_frequency = 433e6
 
         ##################################################
@@ -80,10 +83,46 @@ class simpleRx(gr.top_block, Qt.QWidget):
         self.uhd_usrp_source_0.set_samp_rate(samp_rate)
         self.uhd_usrp_source_0.set_time_unknown_pps(uhd.time_spec(0))
 
-        self.uhd_usrp_source_0.set_center_freq(433e6, 0)
-        self.uhd_usrp_source_0.set_antenna("TX/RX", 0)
+        self.uhd_usrp_source_0.set_center_freq(downlink_frequency, 0)
+        self.uhd_usrp_source_0.set_antenna("RX2", 0)
         self.uhd_usrp_source_0.set_bandwidth(samp_rate, 0)
-        self.uhd_usrp_source_0.set_normalized_gain(.5, 0)
+        self.uhd_usrp_source_0.set_rx_agc(False, 0)
+        self.uhd_usrp_source_0.set_normalized_gain(1, 0)
+        self.uhd_usrp_source_0.set_auto_dc_offset(False, 0)
+        self.uhd_usrp_sink_0 = uhd.usrp_sink(
+            ",".join(("", "")),
+            uhd.stream_args(
+                cpu_format="fc32",
+                args='',
+                channels=list(range(0,1)),
+            ),
+            '',
+        )
+        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_sink_0.set_time_unknown_pps(uhd.time_spec(0))
+
+        self.uhd_usrp_sink_0.set_center_freq(tx_freq, 0)
+        self.uhd_usrp_sink_0.set_antenna('TX/RX', 0)
+        self.uhd_usrp_sink_0.set_bandwidth(samp_rate, 0)
+        self.uhd_usrp_sink_0.set_gain(40, 0)
+        self.qtgui_sink_x_0_0 = qtgui.sink_c(
+            1024, #fftsize
+            window.WIN_BLACKMAN_hARRIS, #wintype
+            0, #fc
+            samp_rate, #bw
+            "", #name
+            True, #plotfreq
+            True, #plotwaterfall
+            True, #plottime
+            True, #plotconst
+            None # parent
+        )
+        self.qtgui_sink_x_0_0.set_update_time(1.0/10)
+        self._qtgui_sink_x_0_0_win = sip.wrapinstance(self.qtgui_sink_x_0_0.qwidget(), Qt.QWidget)
+
+        self.qtgui_sink_x_0_0.enable_rf_freq(False)
+
+        self.top_layout.addWidget(self._qtgui_sink_x_0_0_win)
         self.qtgui_sink_x_0 = qtgui.sink_c(
             1024, #fftsize
             window.WIN_BLACKMAN_hARRIS, #wintype
@@ -102,11 +141,17 @@ class simpleRx(gr.top_block, Qt.QWidget):
         self.qtgui_sink_x_0.enable_rf_freq(False)
 
         self.top_layout.addWidget(self._qtgui_sink_x_0_win)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'Z:\\schellberg\\indoor_exp_feb_2024\\EXPERIMENT_DATA_7_8_2024\\0HzS_SF_7N_128BW_2500FS_200000NPKTS_50PLEN_100CR_0\\trial1', False, 0, 0)
+        self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
+        self.blocks_delay_0 = blocks.delay(gr.sizeof_gr_complex*1, 400000)
 
 
         ##################################################
         # Connections
         ##################################################
+        self.connect((self.blocks_delay_0, 0), (self.qtgui_sink_x_0_0, 0))
+        self.connect((self.blocks_delay_0, 0), (self.uhd_usrp_sink_0, 0))
+        self.connect((self.blocks_file_source_0, 0), (self.blocks_delay_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.qtgui_sink_x_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.zeromq_pub_sink_0, 0))
 
@@ -119,12 +164,22 @@ class simpleRx(gr.top_block, Qt.QWidget):
 
         event.accept()
 
+    def get_tx_freq(self):
+        return self.tx_freq
+
+    def set_tx_freq(self, tx_freq):
+        self.tx_freq = tx_freq
+        self.uhd_usrp_sink_0.set_center_freq(self.tx_freq, 0)
+
     def get_samp_rate(self):
         return self.samp_rate
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.qtgui_sink_x_0.set_frequency_range(0, self.samp_rate)
+        self.qtgui_sink_x_0_0.set_frequency_range(0, self.samp_rate)
+        self.uhd_usrp_sink_0.set_samp_rate(self.samp_rate)
+        self.uhd_usrp_sink_0.set_bandwidth(self.samp_rate, 0)
         self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
         self.uhd_usrp_source_0.set_bandwidth(self.samp_rate, 0)
 
@@ -133,6 +188,7 @@ class simpleRx(gr.top_block, Qt.QWidget):
 
     def set_downlink_frequency(self, downlink_frequency):
         self.downlink_frequency = downlink_frequency
+        self.uhd_usrp_source_0.set_center_freq(self.downlink_frequency, 0)
 
 
 

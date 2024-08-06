@@ -10,7 +10,7 @@ options:
     gen_linking: dynamic
     generate_options: no_gui
     hier_block_src_path: '.:'
-    id: transponder
+    id: doppler_transponder_noGUI
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -21,7 +21,7 @@ options:
     run_options: prompt
     sizing_mode: fixed
     thread_safe_setters: ''
-    title: Not titled yet
+    title: doppler_transponder_noGUI
     window_size: ''
   states:
     bus_sink: false
@@ -36,12 +36,12 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 433e6
+    value: 3550e6
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [400, 17]
+    coordinate: [396, 17]
     rotation: 0
     state: true
 - name: samp_rate
@@ -60,7 +60,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '.8'
+    value: '70'
   states:
     bus_sink: false
     bus_source: false
@@ -72,29 +72,12 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 906e6
+    value: 3500e6
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
     coordinate: [304, 18]
-    rotation: 0
-    state: true
-- name: variable_low_pass_filter_taps_0
-  id: variable_low_pass_filter_taps
-  parameters:
-    beta: '6.76'
-    comment: ''
-    cutoff_freq: samp_rate/4
-    gain: '1.0'
-    samp_rate: samp_rate
-    width: samp_rate/8
-    win: window.WIN_HAMMING
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [632, 20.0]
     rotation: 0
     state: true
 - name: blocks_file_sink_0
@@ -104,7 +87,7 @@ blocks:
     alias: ''
     append: 'False'
     comment: ''
-    file: /home/jackie/Downloads/rx_noBPF
+    file: transponder_output
     type: complex
     unbuffered: 'False'
     vlen: '1'
@@ -112,45 +95,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [888, 36.0]
-    rotation: 0
-    state: disabled
-- name: blocks_multiply_xx_0
-  id: blocks_multiply_xx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_inputs: '2'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [352, 208.0]
-    rotation: 0
-    state: enabled
-- name: freq_xlating_fir_filter_xxx_0
-  id: freq_xlating_fir_filter_xxx
-  parameters:
-    affinity: ''
-    alias: ''
-    center_freq: '0'
-    comment: ''
-    decim: '1'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samp_rate: samp_rate
-    taps: variable_low_pass_filter_taps_0
-    type: ccc
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [512, 180.0]
+    coordinate: [463, 278]
     rotation: 0
     state: true
 - name: uhd_usrp_sink_0_0
@@ -427,7 +372,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [770, 244]
+    coordinate: [593, 136]
     rotation: 0
     state: enabled
 - name: uhd_usrp_source_0
@@ -706,7 +651,7 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     nchan: '1'
-    norm_gain0: 'False'
+    norm_gain0: 'True'
     norm_gain1: 'False'
     norm_gain10: 'False'
     norm_gain11: 'False'
@@ -799,37 +744,13 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [64, 140.0]
-    rotation: 0
-    state: true
-- name: zeromq_sub_source_0
-  id: zeromq_sub_source
-  parameters:
-    address: tcp://127.0.0.1:4444
-    affinity: ''
-    alias: ''
-    comment: ''
-    hwm: '-1'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    pass_tags: 'False'
-    timeout: '100'
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [117, 333]
+    coordinate: [91, 144]
     rotation: 0
     state: true
 
 connections:
-- [blocks_multiply_xx_0, '0', freq_xlating_fir_filter_xxx_0, '0']
-- [freq_xlating_fir_filter_xxx_0, '0', blocks_file_sink_0, '0']
-- [freq_xlating_fir_filter_xxx_0, '0', uhd_usrp_sink_0_0, '0']
-- [uhd_usrp_source_0, '0', blocks_multiply_xx_0, '0']
-- [zeromq_sub_source_0, '0', blocks_multiply_xx_0, '1']
+- [uhd_usrp_source_0, '0', blocks_file_sink_0, '0']
+- [uhd_usrp_source_0, '0', uhd_usrp_sink_0_0, '0']
 
 metadata:
   file_format: 1

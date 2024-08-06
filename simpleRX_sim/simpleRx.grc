@@ -49,7 +49,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '200000'
+    value: 200e3
   states:
     bus_sink: false
     bus_source: false
@@ -100,7 +100,7 @@ blocks:
     alias: ''
     append: 'False'
     comment: ''
-    file: C:\Users\Patron\Downloads\rtlsdr_direct_2500rx
+    file: C:\Users\Patron\Downloads\b200_430MHz_sf7
     type: complex
     unbuffered: 'False'
     vlen: '1'
@@ -108,7 +108,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [752, 524.0]
+    coordinate: [632, 452.0]
     rotation: 0
     state: disabled
 - name: blocks_multiply_const_vxx_0
@@ -663,7 +663,7 @@ blocks:
     bw7: '0'
     bw8: '0'
     bw9: '0'
-    center_freq0: 433e6
+    center_freq0: downlink_frequency
     center_freq1: '0'
     center_freq10: '0'
     center_freq11: '0'
@@ -737,7 +737,7 @@ blocks:
     dc_offs7: 0+0j
     dc_offs8: 0+0j
     dc_offs9: 0+0j
-    dc_offs_enb0: default
+    dc_offs_enb0: disabled
     dc_offs_enb1: default
     dc_offs_enb10: default
     dc_offs_enb11: default
@@ -771,7 +771,7 @@ blocks:
     dc_offs_enb9: default
     dev_addr: '""'
     dev_args: ''
-    gain0: '.5'
+    gain0: '1'
     gain1: '0'
     gain10: '0'
     gain11: '0'
@@ -968,7 +968,7 @@ blocks:
     nchan: '1'
     num_mboards: '1'
     otw: ''
-    rx_agc0: Default
+    rx_agc0: Disabled
     rx_agc1: Default
     rx_agc10: Default
     rx_agc11: Default
@@ -1027,7 +1027,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [80, 140.0]
+    coordinate: [128, 156.0]
     rotation: 0
     state: enabled
 - name: zeromq_pub_sink_0

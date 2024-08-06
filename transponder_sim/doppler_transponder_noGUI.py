@@ -5,15 +5,12 @@
 # SPDX-License-Identifier: GPL-3.0
 #
 # GNU Radio Python Flow Graph
-# Title: Not titled yet
-# GNU Radio version: 3.10.1.1
+# Title: doppler_transponder_noGUI
+# GNU Radio version: v3.8.2.0-57-gd71cd177
 
 from gnuradio import blocks
-import pmt
-from gnuradio import filter
-from gnuradio.filter import firdes
 from gnuradio import gr
-from gnuradio.fft import window
+from gnuradio.filter import firdes
 import sys
 import signal
 from argparse import ArgumentParser
@@ -23,21 +20,18 @@ from gnuradio import uhd
 import time
 
 
-
-
 class doppler_transponder_noGUI(gr.top_block):
 
     def __init__(self):
-        gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
+        gr.top_block.__init__(self, "doppler_transponder_noGUI")
 
         ##################################################
         # Variables
         ##################################################
+        self.uplink_freq = uplink_freq = 3500e6
+        self.tx_gain = tx_gain = 70
         self.samp_rate = samp_rate = 200000
-        self.variable_low_pass_filter_taps_0 = variable_low_pass_filter_taps_0 = firdes.low_pass(1.0, samp_rate, samp_rate/4,samp_rate/8, window.WIN_HAMMING, 6.76)
-        self.uplink_freq = uplink_freq = 906e6
-        self.tx_gain = tx_gain = .8
-        self.downlink_freq = downlink_freq = 433e6
+        self.downlink_freq = downlink_freq = 3550e6
 
         ##################################################
         # Blocks
@@ -50,13 +44,12 @@ class doppler_transponder_noGUI(gr.top_block):
                 channels=list(range(0,1)),
             ),
         )
-        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_source_0.set_time_unknown_pps(uhd.time_spec(0))
-
         self.uhd_usrp_source_0.set_center_freq(uplink_freq, 0)
+        self.uhd_usrp_source_0.set_normalized_gain(1, 0)
         self.uhd_usrp_source_0.set_antenna('RX2', 0)
         self.uhd_usrp_source_0.set_bandwidth(samp_rate, 0)
-        self.uhd_usrp_source_0.set_normalized_gain(1, 0)
+        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_source_0.set_time_unknown_pps(uhd.time_spec())
         self.uhd_usrp_sink_0_0 = uhd.usrp_sink(
             ",".join(("", "")),
             uhd.stream_args(
@@ -66,45 +59,23 @@ class doppler_transponder_noGUI(gr.top_block):
             ),
             '',
         )
-        self.uhd_usrp_sink_0_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_sink_0_0.set_time_unknown_pps(uhd.time_spec(0))
-
         self.uhd_usrp_sink_0_0.set_center_freq(downlink_freq, 0)
+        self.uhd_usrp_sink_0_0.set_gain(tx_gain, 0)
         self.uhd_usrp_sink_0_0.set_antenna('TX/RX', 0)
         self.uhd_usrp_sink_0_0.set_bandwidth(samp_rate, 0)
-        self.uhd_usrp_sink_0_0.set_normalized_gain(tx_gain, 0)
-        self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(1, variable_low_pass_filter_taps_0, 0, samp_rate)
-        self.blocks_multiply_xx_0 = blocks.multiply_vcc(1)
-        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, '/home/jackie/Downloads/GNURADIO_linear_8k_sep', True, 0, 0)
-        self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
+        self.uhd_usrp_sink_0_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_sink_0_0.set_time_unknown_pps(uhd.time_spec())
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'transponder_output', False)
+        self.blocks_file_sink_0.set_unbuffered(False)
+
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_file_source_0, 0), (self.blocks_multiply_xx_0, 1))
-        self.connect((self.blocks_multiply_xx_0, 0), (self.freq_xlating_fir_filter_xxx_0, 0))
-        self.connect((self.freq_xlating_fir_filter_xxx_0, 0), (self.uhd_usrp_sink_0_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_multiply_xx_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_file_sink_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.uhd_usrp_sink_0_0, 0))
 
-
-    def get_samp_rate(self):
-        return self.samp_rate
-
-    def set_samp_rate(self, samp_rate):
-        self.samp_rate = samp_rate
-        self.set_variable_low_pass_filter_taps_0(firdes.low_pass(1.0, self.samp_rate, self.samp_rate/4, self.samp_rate/8, window.WIN_HAMMING, 6.76))
-        self.uhd_usrp_sink_0_0.set_samp_rate(self.samp_rate)
-        self.uhd_usrp_sink_0_0.set_bandwidth(self.samp_rate, 0)
-        self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
-        self.uhd_usrp_source_0.set_bandwidth(self.samp_rate, 0)
-
-    def get_variable_low_pass_filter_taps_0(self):
-        return self.variable_low_pass_filter_taps_0
-
-    def set_variable_low_pass_filter_taps_0(self, variable_low_pass_filter_taps_0):
-        self.variable_low_pass_filter_taps_0 = variable_low_pass_filter_taps_0
-        self.freq_xlating_fir_filter_xxx_0.set_taps(self.variable_low_pass_filter_taps_0)
 
     def get_uplink_freq(self):
         return self.uplink_freq
@@ -118,7 +89,17 @@ class doppler_transponder_noGUI(gr.top_block):
 
     def set_tx_gain(self, tx_gain):
         self.tx_gain = tx_gain
-        self.uhd_usrp_sink_0_0.set_normalized_gain(self.tx_gain, 0)
+        self.uhd_usrp_sink_0_0.set_gain(self.tx_gain, 0)
+
+    def get_samp_rate(self):
+        return self.samp_rate
+
+    def set_samp_rate(self, samp_rate):
+        self.samp_rate = samp_rate
+        self.uhd_usrp_sink_0_0.set_samp_rate(self.samp_rate)
+        self.uhd_usrp_sink_0_0.set_bandwidth(self.samp_rate, 0)
+        self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
+        self.uhd_usrp_source_0.set_bandwidth(self.samp_rate, 0)
 
     def get_downlink_freq(self):
         return self.downlink_freq
@@ -126,6 +107,7 @@ class doppler_transponder_noGUI(gr.top_block):
     def set_downlink_freq(self, downlink_freq):
         self.downlink_freq = downlink_freq
         self.uhd_usrp_sink_0_0.set_center_freq(self.downlink_freq, 0)
+
 
 
 

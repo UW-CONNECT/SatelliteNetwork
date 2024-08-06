@@ -53,7 +53,7 @@ expected_pkt_cnt = 10 # this should be saved in our ground truth file...
 # exp_root_folder = '../experiment_data_synced'
 # exp_root_folder = '../experiment_data_june2'
 
-exp_root_folder = '../experiment_data_JUNE17'
+exp_root_folder = '../EXPERIMENT_DATA_7_8_2024'
 
 f = open('trial_under_test.txt')
 test_list = [f.read()]

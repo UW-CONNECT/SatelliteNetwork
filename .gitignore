@@ -70,3 +70,21 @@ simpleTX_sim/CW_long_pulse
 simpleTX_sim/doppler_sim_scripts/doppler_out
 simpleTX_sim/doppler_sim_scripts/doppler_sync_testing
 simpleTX_sim/doppler_sim_scripts/doppler_sync_testing_time
+Ham_Transmitters/CW_long_pulse
+Ham_Transmitters/KJ5DKX_audio
+Ham_Transmitters/CW_long_pulse
+Ham_Transmitters/KJ5DKX EN53hb
+Ham_Transmitters/KJ5DKX SSB.wav
+Ham_Transmitters/KJ5DKX_audio
+*.wav
+simpleTX_sim/doppler_sim_scripts/90Hz_doppler_slope
+simpleTX_sim/doppler_sim_scripts/5Hz_doppler_slope
+simpleTX_sim/doppler_sim_scripts/50Hz_doppler_slope
+simpleTX_sim/doppler_sim_scripts/1Hz_doppler_slope
+simpleTX_sim/doppler_sim_scripts/10Hz_doppler_slope
+simpleTX_sim/doppler_sim_scripts/100Hz_doppler_slope
+simpleTX_sim/doppler_sim_scripts/100Hz_doppler_slope
+simpleTX_sim/KJ5DKX SSB.wav
+simpleTX_sim/KJ5DKX SSB.wav
+simpleTX_sim/KJ5DKX SSB.wav
+simpleTX_sim/KJ5DKX SSB.wav

@@ -6,9 +6,9 @@
 #
 # GNU Radio Python Flow Graph
 # Title: Not titled yet
-# GNU Radio version: v3.8.2.0-57-gd71cd177
+# GNU Radio version: 3.10.1.1
 
-from distutils.version import StrictVersion
+from packaging.version import Version as StrictVersion
 
 if __name__ == '__main__':
     import ctypes
@@ -27,6 +27,7 @@ import sip
 from gnuradio import blocks
 import pmt
 from gnuradio import gr
+from gnuradio.fft import window
 import sys
 import signal
 from argparse import ArgumentParser
@@ -35,12 +36,14 @@ from gnuradio import eng_notation
 from gnuradio import uhd
 import time
 
+
+
 from gnuradio import qtgui
 
 class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "Not titled yet")
+        gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Not titled yet")
         qtgui.util.check_set_qss()
@@ -73,7 +76,7 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.tx_freq = tx_freq = 906e6
+        self.tx_freq = tx_freq = 433.05e6
         self.samp_rate = samp_rate = 200e3
 
         ##################################################
@@ -88,32 +91,33 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
             ),
             '',
         )
+        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_sink_0.set_time_unknown_pps(uhd.time_spec(0))
+
         self.uhd_usrp_sink_0.set_center_freq(tx_freq, 0)
-        self.uhd_usrp_sink_0.set_gain(20, 0)
         self.uhd_usrp_sink_0.set_antenna('TX/RX', 0)
         self.uhd_usrp_sink_0.set_bandwidth(samp_rate, 0)
-        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_sink_0.set_time_unknown_pps(uhd.time_spec())
+        self.uhd_usrp_sink_0.set_gain(30, 0)
         self.qtgui_sink_x_0 = qtgui.sink_c(
             1024, #fftsize
-            firdes.WIN_BLACKMAN_hARRIS, #wintype
+            window.WIN_BLACKMAN_hARRIS, #wintype
             0, #fc
             samp_rate, #bw
             "", #name
             True, #plotfreq
             True, #plotwaterfall
             True, #plottime
-            True #plotconst
+            True, #plotconst
+            None # parent
         )
         self.qtgui_sink_x_0.set_update_time(1.0/10)
-        self._qtgui_sink_x_0_win = sip.wrapinstance(self.qtgui_sink_x_0.pyqwidget(), Qt.QWidget)
+        self._qtgui_sink_x_0_win = sip.wrapinstance(self.qtgui_sink_x_0.qwidget(), Qt.QWidget)
 
         self.qtgui_sink_x_0.enable_rf_freq(False)
 
-        self.top_grid_layout.addWidget(self._qtgui_sink_x_0_win)
-        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\experiment_data_JUNE17\\SF_7N_128BW_20000FS_200000NPKTS_50PLEN_100CR_0\\trial1', True, 0, 0)
+        self.top_layout.addWidget(self._qtgui_sink_x_0_win)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'smb:\\schellberg\\indoor_exp_feb_2024\\EXPERIMENT_DATA_7_8_2024\\0HzS_SF_7N_128BW_2500FS_200000NPKTS_50PLEN_100CR_0\\trial1', False, 0, 0)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
-
 
 
         ##################################################
@@ -126,6 +130,9 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "TXfromFiletoZMQ")
         self.settings.setValue("geometry", self.saveGeometry())
+        self.stop()
+        self.wait()
+
         event.accept()
 
     def get_tx_freq(self):
@@ -147,7 +154,6 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
 
 
 
-
 def main(top_block_cls=TXfromFiletoZMQ, options=None):
 
     if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
@@ -162,6 +168,9 @@ def main(top_block_cls=TXfromFiletoZMQ, options=None):
     tb.show()
 
     def sig_handler(sig=None, frame=None):
+        tb.stop()
+        tb.wait()
+
         Qt.QApplication.quit()
 
     signal.signal(signal.SIGINT, sig_handler)
@@ -171,11 +180,6 @@ def main(top_block_cls=TXfromFiletoZMQ, options=None):
     timer.start(500)
     timer.timeout.connect(lambda: None)
 
-    def quitting():
-        tb.stop()
-        tb.wait()
-
-    qapp.aboutToQuit.connect(quitting)
     qapp.exec_()
 
 if __name__ == '__main__':
