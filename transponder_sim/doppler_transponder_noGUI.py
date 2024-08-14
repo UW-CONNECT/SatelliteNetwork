@@ -6,11 +6,12 @@
 #
 # GNU Radio Python Flow Graph
 # Title: doppler_transponder_noGUI
-# GNU Radio version: v3.8.2.0-57-gd71cd177
+# GNU Radio version: 3.10.9.2
 
 from gnuradio import blocks
 from gnuradio import gr
 from gnuradio.filter import firdes
+from gnuradio.fft import window
 import sys
 import signal
 from argparse import ArgumentParser
@@ -18,12 +19,15 @@ from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio import uhd
 import time
+from gnuradio import zeromq
+
+
 
 
 class doppler_transponder_noGUI(gr.top_block):
 
     def __init__(self):
-        gr.top_block.__init__(self, "doppler_transponder_noGUI")
+        gr.top_block.__init__(self, "doppler_transponder_noGUI", catch_exceptions=True)
 
         ##################################################
         # Variables
@@ -36,6 +40,8 @@ class doppler_transponder_noGUI(gr.top_block):
         ##################################################
         # Blocks
         ##################################################
+
+        self.zeromq_sub_source_0 = zeromq.sub_source(gr.sizeof_gr_complex, 1, 'tcp://127.0.0.1:4444', 100, False, (-1), '', False)
         self.uhd_usrp_source_0 = uhd.usrp_source(
             ",".join(("", "")),
             uhd.stream_args(
@@ -44,12 +50,13 @@ class doppler_transponder_noGUI(gr.top_block):
                 channels=list(range(0,1)),
             ),
         )
+        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_source_0.set_time_unknown_pps(uhd.time_spec(0))
+
         self.uhd_usrp_source_0.set_center_freq(uplink_freq, 0)
-        self.uhd_usrp_source_0.set_normalized_gain(1, 0)
         self.uhd_usrp_source_0.set_antenna('RX2', 0)
         self.uhd_usrp_source_0.set_bandwidth(samp_rate, 0)
-        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_source_0.set_time_unknown_pps(uhd.time_spec())
+        self.uhd_usrp_source_0.set_gain(1, 0)
         self.uhd_usrp_sink_0_0 = uhd.usrp_sink(
             ",".join(("", "")),
             uhd.stream_args(
@@ -59,22 +66,22 @@ class doppler_transponder_noGUI(gr.top_block):
             ),
             '',
         )
+        self.uhd_usrp_sink_0_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_sink_0_0.set_time_unknown_pps(uhd.time_spec(0))
+
         self.uhd_usrp_sink_0_0.set_center_freq(downlink_freq, 0)
-        self.uhd_usrp_sink_0_0.set_gain(tx_gain, 0)
         self.uhd_usrp_sink_0_0.set_antenna('TX/RX', 0)
         self.uhd_usrp_sink_0_0.set_bandwidth(samp_rate, 0)
-        self.uhd_usrp_sink_0_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_sink_0_0.set_time_unknown_pps(uhd.time_spec())
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'transponder_output', False)
-        self.blocks_file_sink_0.set_unbuffered(False)
-
+        self.uhd_usrp_sink_0_0.set_gain(tx_gain, 0)
+        self.blocks_multiply_xx_0 = blocks.multiply_vcc(1)
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_file_sink_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.uhd_usrp_sink_0_0, 0))
+        self.connect((self.blocks_multiply_xx_0, 0), (self.uhd_usrp_sink_0_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_multiply_xx_0, 0))
+        self.connect((self.zeromq_sub_source_0, 0), (self.blocks_multiply_xx_0, 1))
 
 
     def get_uplink_freq(self):
@@ -107,7 +114,6 @@ class doppler_transponder_noGUI(gr.top_block):
     def set_downlink_freq(self, downlink_freq):
         self.downlink_freq = downlink_freq
         self.uhd_usrp_sink_0_0.set_center_freq(self.downlink_freq, 0)
-
 
 
 

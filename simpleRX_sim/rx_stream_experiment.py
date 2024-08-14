@@ -3,13 +3,12 @@ rx_stream.py :: Jackie Schellberg :: 10/19/2023
 Based off of code shared from Muhammad Osama Shahid. 
 
 This is the top-level file to begin processing data obtained
-from GNURADIO UDP SINK block. 
+from GNURADIO ZMQ SINK block. 
 '''
 import math
 import multiprocessing
 from multiprocessing import Manager
 import socket
-
 import time
 from threading import Thread
 from queue import Queue
@@ -19,25 +18,13 @@ from utils import *
 from css_demod_2 import CssDemod
 import pickle
 import zmq
-
+import sys
+sys.path.append('../')
+from config import *
 from matplotlib import pyplot as plt
 
-#### Load data related to the experiment for BER/SNR/etc
-#exp_root_folder = 'ber_desktop_testing'
-# exp_root_folder = '../../experiment_data'
-# exp_root_folder = '../../experiment_data_synced'
-# exp_root_folder = '../../TEST_WO_PHASE'
-exp_root_folder = '../../TEST_ISOLATED'
-
-f = open('../trial_under_test.txt')
-exp_folder = f.read()
-f.close()
-
-# exp_folder = 'SF_7N_128BW_2500FS_200000NPKTS_5PLEN_100CR_0'
 
 trial_name = "trial1"
-#### 
-gnd_truth_data = '../simpleTX_sim/ground_truth'+'/'+exp_root_folder + '/' + exp_folder + '/' + trial_name + '.pkl'
 gnd_truth_data = exp_root_folder + '/' + exp_folder + '/' +"ground_truth_out.pkl"
 with open(gnd_truth_data,'rb') as f: 
     SF, N, UPSAMP,NUMPKTS, BW, PAYLOAD_LEN,preamble,end_delimeter,symbols,CR = pickle.load(f)
@@ -45,20 +32,20 @@ with open(gnd_truth_data,'rb') as f:
 #RAW_FS = 450e3					# SDR's raw sampling freq
 #RAW_FS = 200e3					# SDR's raw sampling freq
 # RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
-RAW_FS = 200e3                # the queue size is selected so that no more than 1 packet may reside within a queue item
+# RAW_FS = 200e3                # the queue size is selected so that no more than 1 packet may reside within a queue item
 
 # RAW_FS = 3000000           # value should be kept <= expected length, so that we don't miss empty space
 # RAW_FS=1250000
 LORA_CHANNELS = [1]  # channels to process
 
-UPSAMPLE_FACTOR = 4             		# factor to downsample to
+# UPSAMPLE_FACTOR = 4             		# factor to downsample to
 #OVERLAP = 10 * UPSAMPLE_FACTOR#int(10 * RAW_FS / BW)
 OVERLAP = 0
 # FS =200000
-FS =200e3
+# FS =200e3
 # FS =250000 # Min. BW for use with the rtlsdr
 # Downsample the received signal to just the signal components of interest to lighten computation
-GNURADIO_FS = 200000
+# GNURADIO_FS = 200000
 DOPPLER_MAX = 18000
 PRE_DOWNSAMP_FS =  (BW + DOPPLER_MAX)
 
@@ -66,19 +53,19 @@ PRE_DOWNSAMP = 1
 # print(UPSAMP)
 # UPSAMP = int(FS/BW)
 # print("UPSAMP AFTER:", UPSAMP)
-if (UPSAMP > 10):
-    PRE_DOWNSAMP = int(FS/PRE_DOWNSAMP_FS) 
-    # print(PRE_DOWNSAMP) 
-    # some requirement for downsampling 
-    # can't downsample by an invalid integer 
-    while (FS % PRE_DOWNSAMP != 0):
-        PRE_DOWNSAMP = PRE_DOWNSAMP - 1 
-    # print("Initial Downsampling factor before processing: ", PRE_DOWNSAMP, "Into: ", FS/PRE_DOWNSAMP)
-    # PRE_DOWNSAMP = 5
-    FS = FS/PRE_DOWNSAMP 
-else: 
-    PRE_DOWNSAMP =1
-    FS = FS/PRE_DOWNSAMP
+# if (UPSAMP > 10):
+    # PRE_DOWNSAMP = int(FS/PRE_DOWNSAMP_FS) 
+    # # print(PRE_DOWNSAMP) 
+    # # some requirement for downsampling 
+    # # can't downsample by an invalid integer 
+    # while (FS % PRE_DOWNSAMP != 0):
+        # PRE_DOWNSAMP = PRE_DOWNSAMP - 1 
+    # # print("Initial Downsampling factor before processing: ", PRE_DOWNSAMP, "Into: ", FS/PRE_DOWNSAMP)
+    # # PRE_DOWNSAMP = 5
+    # FS = FS/PRE_DOWNSAMP 
+# else: 
+    # PRE_DOWNSAMP =1
+    # FS = FS/PRE_DOWNSAMP
 # PRE_DOWNSAMP = 10
 # UPSAMP = int(RAW_FS/BW)
 UPSAMP = int(FS/BW)
@@ -88,7 +75,6 @@ PREAMBLE_SZ = 1*N*UPSAMP
 # PREAMBLE_SZ = 1*N*(RAW_FS/BW)
 # PREAMBLE_SZ = int(1*N*(RAW_FS/BW))
 END_DELIMITER = end_delimeter
-print("Downsampling the received signal: ", PRE_DOWNSAMP)
 # Threshold envelope; at what power level do we expect to see a packet arrive? 
 # For low power scenario, this will have to be substituted 
 #self.DB_THRESH = -13 # simulation with .005 noise voltage
@@ -109,7 +95,14 @@ FS = UPSAMP*BW
 # DB_THRESH = -11
 # print("Bandwidth:",BW)
 ##########################################################################
-
+print("Demodulation. BW=", BW, " FS=", FS) 
+if (fine_sync_method == 0):
+    print("Using doppler slope compensation in fine sync." )
+elif (fine_sync_method == 1):
+    print("Using default correlator in fine sync.")
+else:
+    print("Using self-dechirping doppler cancellation in fine sync.")
+print("Intra-packet doppler correction: ", intra_pkt_doppler_correction)
 def spawn_a_worker(my_channel, input_queue, output_queue):
     ###########################################################################################################
     # worker = YourDemodulatorImplementation(my_channel, input_queue, output_queue)
@@ -117,7 +110,8 @@ def spawn_a_worker(my_channel, input_queue, output_queue):
     ###########################################################################################################
     #css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH);
     #css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER,DB_THRESH, symbols,PAYLOAD_LEN,NUMPKTS,SF);
-    css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER, symbols,PAYLOAD_LEN,NUMPKTS,SF,BW,FS,CR);
+    # css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER, symbols,PAYLOAD_LEN,NUMPKTS,SF,BW,FS,CR);
+    css_demodulator = CssDemod(N, UPSAMP,PREAMBLE_SZ,END_DELIMITER, symbols,PAYLOAD_LEN,NUMPKTS,SF,BW,FS,CR,fine_sync_method,intra_pkt_doppler_correction);
     outfile = ('../simpleTX_sim/'+exp_root_folder + '/' + exp_folder + '/' + 'error_out')
     css_demodulator.setErrorMeasurementFile(outfile)
     print("Started")

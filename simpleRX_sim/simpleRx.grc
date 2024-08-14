@@ -37,7 +37,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 433e6
+    value: 435.11e6
   states:
     bus_sink: false
     bus_source: false
@@ -129,27 +129,6 @@ blocks:
     coordinate: [424, 300.0]
     rotation: 0
     state: disabled
-- name: blocks_throttle2_0
-  id: blocks_throttle2
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    limit: auto
-    maximum: '0.1'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: samp_rate
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [472, 88.0]
-    rotation: 0
-    state: disabled
 - name: blocks_udp_sink_0_0
   id: blocks_udp_sink
   parameters:
@@ -234,7 +213,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [744, 84.0]
+    coordinate: [424, 292.0]
     rotation: 0
     state: enabled
 - name: rtlsdr_source_0
@@ -380,7 +359,7 @@ blocks:
     corr7: '0'
     corr8: '0'
     corr9: '0'
-    dc_offset_mode0: '0'
+    dc_offset_mode0: '2'
     dc_offset_mode1: '0'
     dc_offset_mode10: '0'
     dc_offset_mode11: '0'
@@ -444,7 +423,7 @@ blocks:
     freq7: 100e6
     freq8: 100e6
     freq9: 100e6
-    gain0: '20'
+    gain0: '35'
     gain1: '10'
     gain10: '10'
     gain11: '10'
@@ -591,7 +570,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 380.0]
+    coordinate: [24, 364.0]
     rotation: 0
     state: disabled
 - name: uhd_usrp_source_0
@@ -771,7 +750,7 @@ blocks:
     dc_offs_enb9: default
     dev_addr: '""'
     dev_args: ''
-    gain0: '1'
+    gain0: '60'
     gain1: '0'
     gain10: '0'
     gain11: '0'
@@ -803,7 +782,7 @@ blocks:
     gain7: '0'
     gain8: '0'
     gain9: '0'
-    gain_type0: normalized
+    gain_type0: default
     gain_type1: default
     gain_type10: default
     gain_type11: default
@@ -1049,7 +1028,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [632, 292.0]
+    coordinate: [392, 468.0]
     rotation: 0
     state: enabled
 
@@ -1057,12 +1036,12 @@ connections:
 - [blocks_multiply_const_vxx_0, '0', channels_channel_model_0, '0']
 - [blocks_multiply_const_vxx_0, '0', qtgui_sink_x_0, '0']
 - [blocks_multiply_const_vxx_0, '0', zeromq_pub_sink_0, '0']
-- [blocks_throttle2_0, '0', qtgui_sink_x_0, '0']
-- [blocks_throttle2_0, '0', zeromq_pub_sink_0, '0']
 - [channels_channel_model_0, '0', blocks_file_sink_1, '0']
 - [channels_channel_model_0, '0', qtgui_sink_x_0, '0']
 - [channels_channel_model_0, '0', zeromq_pub_sink_0, '0']
 - [rtlsdr_source_0, '0', blocks_file_sink_2, '0']
+- [rtlsdr_source_0, '0', qtgui_sink_x_0, '0']
+- [rtlsdr_source_0, '0', zeromq_pub_sink_0, '0']
 - [uhd_usrp_source_0, '0', blocks_file_sink_0, '0']
 - [uhd_usrp_source_0, '0', blocks_file_sink_1, '0']
 - [uhd_usrp_source_0, '0', blocks_file_sink_2, '0']

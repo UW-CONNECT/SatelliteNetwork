@@ -27,7 +27,8 @@ from matplotlib import pyplot as plt
 # exp_root_folder = '../../experiment_data'
 # exp_root_folder = '../../experiment_data_synced'
 # exp_root_folder = '../../TEST_WO_PHASE'
-exp_root_folder = '../../TEST_ISOLATED'
+# exp_root_folder = '../../TEST_ISOLATED'
+exp_root_folder = '../'
 
 f = open('../trial_under_test.txt')
 exp_folder = f.read()
@@ -46,7 +47,7 @@ with open(gnd_truth_data,'rb') as f:
 #RAW_FS = 200e3					# SDR's raw sampling freq
 # RAW_FS = 200000                # the queue size is selected so that no more than 1 packet may reside within a queue item
 RAW_FS = 200e3                # the queue size is selected so that no more than 1 packet may reside within a queue item
-
+# RAW_FS = 500e3    
 # RAW_FS = 3000000           # value should be kept <= expected length, so that we don't miss empty space
 # RAW_FS=1250000
 LORA_CHANNELS = [1]  # channels to process

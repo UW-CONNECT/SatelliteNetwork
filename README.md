@@ -1,6 +1,8 @@
 # CSS for Ham Satellites
-Experimental 2500 Hz Bandwidth CSS for Ham Radio Linear Satellites (UHF/VHF) 
+This is for testing an experimental 2500 Hz Bandwidth CSS mode for the Ham Radio Linear Satellites (UHF/VHF) 
 Ham operator call sign: KJ5DKX
+
+Tranmissions up to the Ham satellites will include an identifying SSB voice transmission in between the CSS packets. 
 
 # Instructions for Use 
 config.py -> Modify these parameters to match your preferences (file location, chirp characteristics, etc) 
@@ -14,6 +16,15 @@ adjust SNR by changing either the multiply const or Channel Model
 and receive with simpleRx.grc]
  
 simpleRX_sim/rx_stream_experiment.py -> Run, wait for "Started" message, then start the GNURADIO simulation. 
+Or, run simpleRx.grc/simpleRx.py with the SDR device configured. 
 
 If the file paths and parameters in config.py were set correctly, packet information should begin to appear 
-in the cmd window. Packet statistics such as PER and SER and doppler can be evaluated via [] 
+in the cmd window. Packet statistics such as PER and SER and doppler can be evaluated under Plotting.
+
+# Other Folders
+### Satellite Tracking
+
+Files related to ham satellite connecity between groundstations. 
+
+### Ham Transmitters 
+Includes a bare-bones SSB, CW, and FM transmitter. These are not fine-tuned for over-the-air use.  

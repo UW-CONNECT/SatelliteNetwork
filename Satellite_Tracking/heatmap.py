@@ -35,7 +35,8 @@ def draw_map(m, scale=0.2):
         line.set(linestyle='-', alpha=0.3, color='w')
     
 # names of the satellites of interest (only one for now)
-satnames = ['NOAA 15']
+# satnames = ['NOAA 15']
+satnames = ['FUNCUBE-1 (AO-73)','JY1SAT (JO-97)', 'OSCAR 7 (AO-7)', 'RS-44 & BREEZE-KM R/B', 'XW-2B']
 
 # location of our ground station, longitude and latitude 
 # Note that these coordinates suite WGS

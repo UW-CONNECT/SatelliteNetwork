@@ -6,10 +6,12 @@
 #
 # GNU Radio Python Flow Graph
 # Title: simpleRx_noGUI
-# GNU Radio version: v3.8.2.0-57-gd71cd177
+# GNU Radio version: 3.10.8.0
 
+from gnuradio import blocks
 from gnuradio import gr
 from gnuradio.filter import firdes
+from gnuradio.fft import window
 import sys
 import signal
 from argparse import ArgumentParser
@@ -20,21 +22,24 @@ import time
 from gnuradio import zeromq
 
 
+
+
 class simpleRx_noGUI(gr.top_block):
 
     def __init__(self):
-        gr.top_block.__init__(self, "simpleRx_noGUI")
+        gr.top_block.__init__(self, "simpleRx_noGUI", catch_exceptions=True)
 
         ##################################################
         # Variables
         ##################################################
         self.samp_rate = samp_rate = 200e3
-        self.downlink_frequency = downlink_frequency = 433e6
+        self.downlink_frequency = downlink_frequency = 3550e6
 
         ##################################################
         # Blocks
         ##################################################
-        self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_gr_complex, 1, 'tcp://127.0.0.1:55555', 100, False, -1)
+
+        self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_gr_complex, 1, 'tcp://127.0.0.1:55555', 100, False, (-1), '')
         self.uhd_usrp_source_0 = uhd.usrp_source(
             ",".join(("", '')),
             uhd.stream_args(
@@ -43,19 +48,23 @@ class simpleRx_noGUI(gr.top_block):
                 channels=list(range(0,1)),
             ),
         )
+        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_source_0.set_time_unknown_pps(uhd.time_spec(0))
+
         self.uhd_usrp_source_0.set_center_freq(downlink_frequency, 0)
-        self.uhd_usrp_source_0.set_rx_agc(False, 0)
-        self.uhd_usrp_source_0.set_gain(1, 0)
         self.uhd_usrp_source_0.set_antenna("TX/RX", 0)
         self.uhd_usrp_source_0.set_bandwidth(samp_rate, 0)
-        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_source_0.set_time_unknown_pps(uhd.time_spec())
-
+        self.uhd_usrp_source_0.set_rx_agc(False, 0)
+        self.uhd_usrp_source_0.set_gain(60, 0)
+        self.uhd_usrp_source_0.set_auto_dc_offset(True, 0)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'rx_out', False)
+        self.blocks_file_sink_0.set_unbuffered(False)
 
 
         ##################################################
         # Connections
         ##################################################
+        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_file_sink_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.zeromq_pub_sink_0, 0))
 
 
@@ -73,7 +82,6 @@ class simpleRx_noGUI(gr.top_block):
     def set_downlink_frequency(self, downlink_frequency):
         self.downlink_frequency = downlink_frequency
         self.uhd_usrp_source_0.set_center_freq(self.downlink_frequency, 0)
-
 
 
 

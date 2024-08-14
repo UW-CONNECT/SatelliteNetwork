@@ -37,7 +37,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '200000'
+    value: 2.4e6
   states:
     bus_sink: false
     bus_source: false
@@ -88,7 +88,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: C:\Users\Patron\Downloads\b200_430MHz_sf7
+    file: C:\Users\Patron\Downloads\sdrpp_windows_x64\sdrpp_windows_x64\recordings\baseband_145960000Hz_10-52-10_11-08-2024.wav
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -118,7 +118,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [424, 300.0]
+    coordinate: [384, 224.0]
     rotation: 0
     state: disabled
 - name: blocks_throttle2_0
@@ -160,7 +160,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [376, 456.0]
+    coordinate: [272, 360.0]
     rotation: 0
     state: enabled
 - name: blocks_throttle_0
@@ -266,9 +266,29 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [744, 84.0]
+    coordinate: [456, 84.0]
     rotation: 0
     state: enabled
+- name: rational_resampler_xxx_0
+  id: rational_resampler_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    decim: '12'
+    fbw: '0'
+    interp: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    taps: '[]'
+    type: ccc
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [472, 472.0]
+    rotation: 0
+    state: bypassed
 - name: zeromq_pub_sink_0
   id: zeromq_pub_sink
   parameters:
@@ -288,7 +308,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [632, 292.0]
+    coordinate: [584, 244.0]
     rotation: 0
     state: enabled
 
@@ -299,12 +319,13 @@ connections:
 - [blocks_multiply_const_vxx_0, '0', zeromq_pub_sink_0, '0']
 - [blocks_throttle2_0, '0', qtgui_sink_x_0, '0']
 - [blocks_throttle2_0, '0', zeromq_pub_sink_0, '0']
-- [blocks_throttle2_1, '0', qtgui_sink_x_0, '0']
-- [blocks_throttle2_1, '0', zeromq_pub_sink_0, '0']
+- [blocks_throttle2_1, '0', rational_resampler_xxx_0, '0']
 - [blocks_throttle_0, '0', blocks_multiply_const_vxx_0, '0']
 - [channels_channel_model_0, '0', blocks_file_sink_1, '0']
 - [channels_channel_model_0, '0', qtgui_sink_x_0, '0']
 - [channels_channel_model_0, '0', zeromq_pub_sink_0, '0']
+- [rational_resampler_xxx_0, '0', qtgui_sink_x_0, '0']
+- [rational_resampler_xxx_0, '0', zeromq_pub_sink_0, '0']
 
 metadata:
   file_format: 1

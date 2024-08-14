@@ -1,0 +1,18 @@
+import numpy as np 
+
+
+outfile_name = 'KJ5DKX_SF7ChirpTrain'
+voice_file = 'KJ5DKX_SSB_Modulated_voice_200k'   
+chirp_file = '../../HAM_TESTS/0HzS_SF_7N_128BW_2500FS_200000NPKTS_1PLEN_100CR_0' 
+
+v1 = open(voice_file, 'rb')
+v1_x = v1.read()
+
+c1 = open(chirp_file, 'rb')
+c1_x = c1.read()
+
+outdata = np.concatenate(( v1_x, c1_x ))
+
+file = open(outfile_name, 'bw')
+file.write(outdata)
+file.close()

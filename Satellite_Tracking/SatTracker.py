@@ -23,9 +23,12 @@ class SatTracker:
                 
         # load satellite data TLE data for all sats 
         #stations_url = 'http://celestrak.org/NORAD/elements/stations.txt' # this file contains the ISS 
-        stations_url = 'http://celestrak.org/NORAD/elements/active.txt'    # this file contains NOAA sats
+        # stations_url = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle'    # this file contains NOAA sats
+        
+        # SATNOGS has most of our satellites of interet. 
+        stations_url = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=satnogs&FORMAT=tle'
         # [TODO] If we are interested in SATs across these list, just concat the output 
-        #satellites = load.tle_file(stations_url,reload=True)
+        # satellites = load.tle_file(stations_url,reload=True)
         # [TODO] Check cached tle_file only if two hours has no yet passed 
         satellites = load.tle_file(stations_url)
         by_name = {sat.name: sat for sat in satellites}
@@ -61,6 +64,7 @@ class SatTracker:
             for ti in range(0,len(timescales)): 
                 if alt.degrees[ti] > self.minElevationAngle: 
                     access_out_curr.append(1)
+                    # access_out_curr.append(alt.degrees[ti])
                 else: 
                     access_out_curr.append(0)
                     

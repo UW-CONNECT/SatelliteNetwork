@@ -33,18 +33,6 @@ options:
     state: enabled
 
 blocks:
-- name: freq_slope
-  id: variable
-  parameters:
-    comment: ''
-    value: '50'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [592, 200.0]
-    rotation: 0
-    state: enabled
 - name: samp_rate
   id: variable
   parameters:
@@ -57,18 +45,6 @@ blocks:
     coordinate: [243, 23]
     rotation: 0
     state: enabled
-- name: sweep_time_seconds
-  id: variable
-  parameters:
-    comment: ''
-    value: (samp_rate/2)/freq_slope
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [384, 0.0]
-    rotation: 0
-    state: enabled
 - name: analog_sig_source_x_0
   id: analog_sig_source_x
   parameters:
@@ -76,38 +52,20 @@ blocks:
     alias: ''
     amp: '1'
     comment: ''
-    freq: 1/sweep_time_seconds
+    freq: '1000'
     maxoutbuf: '0'
     minoutbuf: '0'
-    offset: -1/2
+    offset: '0'
     phase: '0'
     samp_rate: samp_rate
     showports: 'False'
-    type: float
-    waveform: analog.GR_SAW_WAVE
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [40, 464.0]
-    rotation: 0
-    state: enabled
-- name: blocks_file_sink_0
-  id: blocks_file_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    append: 'False'
-    comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleRX_sim\sf8_lowSNR
     type: complex
-    unbuffered: 'False'
-    vlen: '1'
+    waveform: analog.GR_COS_WAVE
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [888, 360.0]
+    coordinate: [32, 512.0]
     rotation: 0
     state: disabled
 - name: blocks_file_source_0
@@ -117,7 +75,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: Z:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleTX_sim\doppler_sim_scripts\50Hz_doppler_slope
+    file: ''
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -129,7 +87,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [56, 328.0]
+    coordinate: [120, 300.0]
     rotation: 0
     state: disabled
 - name: blocks_file_source_0_0
@@ -139,7 +97,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: J:\schellberg\indoor_exp_feb_2024\TEST_ISOLATED\0HzS_SF_7N_128BW_2500FS_200000NPKTS_50PLEN_100CR_0\trial1
+    file: Z:\schellberg\indoor_exp_feb_2024\TEST_CONFIG\0HzS_SF_7N_128BW_2500FS_200000NPKTS_50PLEN_100CR_0\trial1
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -160,7 +118,7 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    const: '.005'
+    const: '.003'
     maxoutbuf: '0'
     minoutbuf: '0'
     type: complex
@@ -187,9 +145,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [328, 308.0]
+    coordinate: [440, 284.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_throttle2_0
   id: blocks_throttle2
   parameters:
@@ -202,31 +160,13 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     samples_per_second: samp_rate
-    type: float
+    type: complex
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [336, 544.0]
-    rotation: 0
-    state: enabled
-- name: blocks_vco_c_0
-  id: blocks_vco_c
-  parameters:
-    affinity: ''
-    alias: ''
-    amplitude: '1'
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samp_rate: samp_rate
-    sensitivity: '((2*3.14)*freq_slope*sweep_time_seconds) '
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [536, 524.0]
+    coordinate: [320, 408.0]
     rotation: 0
     state: enabled
 - name: channels_channel_model_1
@@ -240,14 +180,64 @@ blocks:
     freq_offset: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
-    noise_voltage: '.003'
+    noise_voltage: '.005'
     seed: '0'
     taps: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [616, 8.0]
+    coordinate: [632, 0.0]
+    rotation: 0
+    state: disabled
+- name: channels_channel_model_1_0
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1.0'
+    freq_offset: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: '.005'
+    seed: '0'
+    taps: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [496, 304.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_sink_x_0
+  id: qtgui_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    bw: samp_rate
+    comment: ''
+    fc: '0'
+    fftsize: '1024'
+    gui_hint: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    plotconst: 'True'
+    plotfreq: 'True'
+    plottime: 'True'
+    plotwaterfall: 'True'
+    rate: '10'
+    showports: 'False'
+    showrf: 'False'
+    type: complex
+    wintype: window.WIN_BLACKMAN_hARRIS
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [912, 524.0]
     rotation: 0
     state: enabled
 - name: qtgui_sink_x_1
@@ -278,7 +268,25 @@ blocks:
     bus_structure: null
     coordinate: [1000, 60.0]
     rotation: 0
-    state: enabled
+    state: disabled
+- name: satellites_doppler_correction_0
+  id: satellites_doppler_correction
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    file: Z:\schellberg\indoor_exp_feb_2024\SatelliteNetwork-main\simpleRX_sim\doppler_interp.txt
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    t0: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [448, 548.0]
+    rotation: 0
+    state: bypassed
 - name: zeromq_pub_sink_0
   id: zeromq_pub_sink
   parameters:
@@ -298,22 +306,48 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1000, 184.0]
+    coordinate: [663, 210]
     rotation: 0
     state: enabled
+- name: zeromq_sub_source_0
+  id: zeromq_sub_source
+  parameters:
+    address: tcp://127.0.0.1:4444
+    affinity: ''
+    alias: ''
+    bind: 'False'
+    comment: ''
+    hwm: '-1'
+    key: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    pass_tags: 'False'
+    timeout: '100'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [88, 316.0]
+    rotation: 0
+    state: disabled
 
 connections:
-- [analog_sig_source_x_0, '0', blocks_throttle2_0, '0']
+- [analog_sig_source_x_0, '0', satellites_doppler_correction_0, '0']
 - [blocks_file_source_0, '0', blocks_multiply_xx_0, '1']
 - [blocks_file_source_0_0, '0', blocks_multiply_const_vxx_1, '0']
 - [blocks_multiply_const_vxx_1, '0', blocks_multiply_xx_0, '0']
+- [blocks_multiply_const_vxx_1, '0', satellites_doppler_correction_0, '0']
 - [blocks_multiply_xx_0, '0', channels_channel_model_1, '0']
-- [blocks_throttle2_0, '0', blocks_vco_c_0, '0']
-- [blocks_vco_c_0, '0', blocks_multiply_xx_0, '1']
-- [channels_channel_model_1, '0', blocks_file_sink_0, '0']
+- [blocks_throttle2_0, '0', channels_channel_model_1_0, '0']
 - [channels_channel_model_1, '0', qtgui_sink_x_1, '0']
 - [channels_channel_model_1, '0', zeromq_pub_sink_0, '0']
+- [channels_channel_model_1_0, '0', qtgui_sink_x_0, '0']
+- [channels_channel_model_1_0, '0', zeromq_pub_sink_0, '0']
+- [satellites_doppler_correction_0, '0', blocks_throttle2_0, '0']
+- [zeromq_sub_source_0, '0', blocks_multiply_xx_0, '1']
 
 metadata:
   file_format: 1
-  grc_version: 3.10.8.0
+  grc_version: 3.10.9.2

@@ -6,9 +6,9 @@
 #
 # GNU Radio Python Flow Graph
 # Title: Not titled yet
-# GNU Radio version: 3.10.1.1
+# GNU Radio version: v3.8.2.0-57-gd71cd177
 
-from packaging.version import Version as StrictVersion
+from distutils.version import StrictVersion
 
 if __name__ == '__main__':
     import ctypes
@@ -27,7 +27,6 @@ import sip
 from gnuradio import blocks
 import pmt
 from gnuradio import gr
-from gnuradio.fft import window
 import sys
 import signal
 from argparse import ArgumentParser
@@ -35,15 +34,14 @@ from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio import uhd
 import time
-
-
+from gnuradio.qtgui import Range, RangeWidget
 
 from gnuradio import qtgui
 
 class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
+        gr.top_block.__init__(self, "Not titled yet")
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Not titled yet")
         qtgui.util.check_set_qss()
@@ -76,12 +74,20 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.tx_freq = tx_freq = 433.05e6
+        self.tx_freq = tx_freq = 435.119e6
+        self.tx_freq_slide = tx_freq_slide = tx_freq
+        self.tw_pwr = tw_pwr = 30
         self.samp_rate = samp_rate = 200e3
 
         ##################################################
         # Blocks
         ##################################################
+        self._tx_freq_slide_range = Range(tx_freq - 5e3, tx_freq + 5e3, 100, tx_freq, 200)
+        self._tx_freq_slide_win = RangeWidget(self._tx_freq_slide_range, self.set_tx_freq_slide, 'tx_freq_slide', "counter_slider", float)
+        self.top_grid_layout.addWidget(self._tx_freq_slide_win)
+        self._tw_pwr_range = Range(0, 65, 1, 30, 200)
+        self._tw_pwr_win = RangeWidget(self._tw_pwr_range, self.set_tw_pwr, 'tw_pwr', "counter_slider", float)
+        self.top_grid_layout.addWidget(self._tw_pwr_win)
         self.uhd_usrp_sink_0 = uhd.usrp_sink(
             ",".join(("", "")),
             uhd.stream_args(
@@ -91,33 +97,32 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
             ),
             '',
         )
-        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_sink_0.set_time_unknown_pps(uhd.time_spec(0))
-
-        self.uhd_usrp_sink_0.set_center_freq(tx_freq, 0)
+        self.uhd_usrp_sink_0.set_center_freq(tx_freq_slide, 0)
+        self.uhd_usrp_sink_0.set_gain(tw_pwr, 0)
         self.uhd_usrp_sink_0.set_antenna('TX/RX', 0)
         self.uhd_usrp_sink_0.set_bandwidth(samp_rate, 0)
-        self.uhd_usrp_sink_0.set_gain(30, 0)
+        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_sink_0.set_time_unknown_pps(uhd.time_spec())
         self.qtgui_sink_x_0 = qtgui.sink_c(
             1024, #fftsize
-            window.WIN_BLACKMAN_hARRIS, #wintype
+            firdes.WIN_BLACKMAN_hARRIS, #wintype
             0, #fc
             samp_rate, #bw
             "", #name
             True, #plotfreq
             True, #plotwaterfall
             True, #plottime
-            True, #plotconst
-            None # parent
+            True #plotconst
         )
         self.qtgui_sink_x_0.set_update_time(1.0/10)
-        self._qtgui_sink_x_0_win = sip.wrapinstance(self.qtgui_sink_x_0.qwidget(), Qt.QWidget)
+        self._qtgui_sink_x_0_win = sip.wrapinstance(self.qtgui_sink_x_0.pyqwidget(), Qt.QWidget)
 
         self.qtgui_sink_x_0.enable_rf_freq(False)
 
-        self.top_layout.addWidget(self._qtgui_sink_x_0_win)
-        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'smb:\\schellberg\\indoor_exp_feb_2024\\EXPERIMENT_DATA_7_8_2024\\0HzS_SF_7N_128BW_2500FS_200000NPKTS_50PLEN_100CR_0\\trial1', False, 0, 0)
+        self.top_grid_layout.addWidget(self._qtgui_sink_x_0_win)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'J:\\schellberg\\indoor_exp_feb_2024\\TEST_CONFIG\\0HzS_SF_7N_128BW_2500FS_200000NPKTS_50PLEN_100CR_0\\trial1', False, 0, 0)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
+
 
 
         ##################################################
@@ -130,9 +135,6 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "TXfromFiletoZMQ")
         self.settings.setValue("geometry", self.saveGeometry())
-        self.stop()
-        self.wait()
-
         event.accept()
 
     def get_tx_freq(self):
@@ -140,7 +142,21 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
 
     def set_tx_freq(self, tx_freq):
         self.tx_freq = tx_freq
-        self.uhd_usrp_sink_0.set_center_freq(self.tx_freq, 0)
+        self.set_tx_freq_slide(self.tx_freq)
+
+    def get_tx_freq_slide(self):
+        return self.tx_freq_slide
+
+    def set_tx_freq_slide(self, tx_freq_slide):
+        self.tx_freq_slide = tx_freq_slide
+        self.uhd_usrp_sink_0.set_center_freq(self.tx_freq_slide, 0)
+
+    def get_tw_pwr(self):
+        return self.tw_pwr
+
+    def set_tw_pwr(self, tw_pwr):
+        self.tw_pwr = tw_pwr
+        self.uhd_usrp_sink_0.set_gain(self.tw_pwr, 0)
 
     def get_samp_rate(self):
         return self.samp_rate
@@ -150,6 +166,7 @@ class TXfromFiletoZMQ(gr.top_block, Qt.QWidget):
         self.qtgui_sink_x_0.set_frequency_range(0, self.samp_rate)
         self.uhd_usrp_sink_0.set_samp_rate(self.samp_rate)
         self.uhd_usrp_sink_0.set_bandwidth(self.samp_rate, 0)
+
 
 
 
@@ -168,9 +185,6 @@ def main(top_block_cls=TXfromFiletoZMQ, options=None):
     tb.show()
 
     def sig_handler(sig=None, frame=None):
-        tb.stop()
-        tb.wait()
-
         Qt.QApplication.quit()
 
     signal.signal(signal.SIGINT, sig_handler)
@@ -180,6 +194,11 @@ def main(top_block_cls=TXfromFiletoZMQ, options=None):
     timer.start(500)
     timer.timeout.connect(lambda: None)
 
+    def quitting():
+        tb.stop()
+        tb.wait()
+
+    qapp.aboutToQuit.connect(quitting)
     qapp.exec_()
 
 if __name__ == '__main__':

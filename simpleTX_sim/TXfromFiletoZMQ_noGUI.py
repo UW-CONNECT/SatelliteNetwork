@@ -50,7 +50,7 @@ class TXfromFiletoZMQ_noGUI(gr.top_block):
         self.uhd_usrp_sink_0.set_bandwidth(samp_rate, 0)
         self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
         self.uhd_usrp_sink_0.set_time_unknown_pps(uhd.time_spec())
-        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, 'smb:\\schellberg\\indoor_exp_feb_2024\\EXPERIMENT_DATA_7_8_2024\\0HzS_SF_7N_128BW_2500FS_200000NPKTS_50PLEN_100CR_0\\trial1', False, 0, 0)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_gr_complex*1, '..\\0HzS_SF_7N_128BW_2500FS_200000NPKTS_50PLEN_100CR_0\\trial1', False, 0, 0)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
 
 

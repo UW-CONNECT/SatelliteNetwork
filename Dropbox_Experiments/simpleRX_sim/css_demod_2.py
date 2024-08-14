@@ -801,12 +801,12 @@ class CssDemod():
         no_sync_val = []
         ''' Put a coarse-grained doppler shift here ''' 
         
-        ind_win = ((num_preamble)*window_size) + ind + st_dx
+        ind_win = ((num_preamble)*window_size) + ind + st_dx #+ 20
         # test_dop = Rx_Buffer[ind_win-4*window_size:ind_win-2*window_size]\
         for i in range(0,10):
             test_dop = Rx_Buffer[ind_win-7*window_size+i:ind_win-1*window_size+i]
             window_time = int(len(test_dop)/2)
-            test_dop = test_dop[::upsamp]
+            test_dop = test_dop[::upsamp]           # this downsampling may not work in dopper offset scenario! Test this in simulation 
             est_doppler_slope = doppler_slope_offset2(test_dop, SF, BW, int(FS/upsamp), N, 0, 0, DC=False)
             est_doppler_slope = est_doppler_slope / (window_time/FS)
             # est_doppler_slope = 50
